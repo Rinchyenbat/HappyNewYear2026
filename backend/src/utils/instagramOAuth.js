@@ -118,3 +118,4 @@ export async function getInstagramProfile(accessToken) {
     username: typeof data.username === 'string' ? data.username : undefined
   };
 }
+
