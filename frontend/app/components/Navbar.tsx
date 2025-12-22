@@ -54,7 +54,7 @@ export default function Navbar() {
           <Link href={brandHref} className="flex items-center space-x-2">
             <span className="text-2xl">✉️</span>
             <span className="text-xl font-serif font-bold bg-gradient-to-r from-gold to-gold-light bg-clip-text text-transparent">
-              New Year Letters
+              Happy New Year{username ? `, ${username}!` : '!'}
             </span>
           </Link>
 

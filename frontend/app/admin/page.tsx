@@ -20,6 +20,14 @@ type PendingLogin = {
   lastUserAgent: string | null;
 };
 
+type AdminUser = {
+  id: string;
+  username: string;
+  role: 'user' | 'admin';
+  facebookId: string;
+  createdAt: string;
+};
+
 export default function AdminPage() {
   const router = useRouter();
 
@@ -28,6 +36,10 @@ export default function AdminPage() {
   const [pending, setPending] = useState<PendingLogin[]>([]);
   const [usernames, setUsernames] = useState<Record<string, string>>({});
   const [approving, setApproving] = useState<Record<string, boolean>>({});
+
+  const [usersLoading, setUsersLoading] = useState(true);
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [deleting, setDeleting] = useState<Record<string, boolean>>({});
 
   const isAdmin = useMemo(() => getUserRole() === 'admin', []);
 
@@ -41,6 +53,19 @@ export default function AdminPage() {
       setError(err.response?.data?.error?.message || 'Failed to load pending approvals');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchUsers = async () => {
+    setError('');
+    setUsersLoading(true);
+    try {
+      const res = await api.get<{ users: AdminUser[] }>('/admin/users');
+      setUsers(res.data.users);
+    } catch (err: any) {
+      setError(err.response?.data?.error?.message || 'Failed to load users');
+    } finally {
+      setUsersLoading(false);
     }
   };
 
@@ -80,6 +105,7 @@ export default function AdminPage() {
     }
 
     fetchPending();
+    fetchUsers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
@@ -153,6 +179,81 @@ export default function AdminPage() {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+
+        <div className="mt-8 glass-effect p-6 rounded-lg letter-shadow">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-serif text-snow">Users ({users.length})</h2>
+            <button
+              onClick={fetchUsers}
+              disabled={usersLoading}
+              className="px-4 py-2 rounded-lg bg-gradient-to-r from-gold to-gold-light text-midnight font-semibold hover:shadow-lg hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            >
+              {usersLoading ? 'Refreshing...' : 'Refresh'}
+            </button>
+          </div>
+
+          {usersLoading ? (
+            <div className="py-10 text-center text-snow-dark">Loading...</div>
+          ) : users.length === 0 ? (
+            <div className="py-10 text-center text-snow-dark">No users found.</div>
+          ) : (
+            <div className="space-y-3">
+              {users.map((u) => {
+                const isAdminUser = u.role === 'admin';
+                const isBusy = Boolean(deleting[u.id]);
+
+                const doDelete = async () => {
+                  if (isAdminUser) return;
+                  const ok = window.confirm(`Delete user "${u.username}"? This will remove their letters/messages.`);
+                  if (!ok) return;
+                  setError('');
+                  setDeleting((d) => ({ ...d, [u.id]: true }));
+                  try {
+                    await api.delete(`/admin/users/${u.id}`);
+                    setUsers((list) => list.filter((x) => x.id !== u.id));
+                  } catch (err: any) {
+                    setError(err.response?.data?.error?.message || 'Failed to delete user');
+                  } finally {
+                    setDeleting((d) => ({ ...d, [u.id]: false }));
+                  }
+                };
+
+                return (
+                  <div key={u.id} className="p-4 rounded-lg bg-white/5 border border-white/10">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <div className="text-snow font-semibold truncate">{u.username}</div>
+                          <span
+                            className={
+                              isAdminUser
+                                ? 'text-xs px-2 py-0.5 rounded-full bg-gold/20 text-gold'
+                                : 'text-xs px-2 py-0.5 rounded-full bg-white/10 text-snow-dark'
+                            }
+                          >
+                            {u.role}
+                          </span>
+                        </div>
+                        <div className="text-xs text-snow-dark mt-1 break-all">facebookId: {u.facebookId}</div>
+                        <div className="text-xs text-snow-dark mt-1">created: {new Date(u.createdAt).toLocaleString()}</div>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={doDelete}
+                          disabled={isAdminUser || isBusy}
+                          className="px-4 py-2 rounded-lg bg-red-500/20 border border-red-500/30 text-red-300 font-semibold hover:bg-red-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {isBusy ? 'Deleting...' : 'Delete'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
