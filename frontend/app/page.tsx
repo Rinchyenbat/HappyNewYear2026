@@ -148,7 +148,7 @@ export default function HomePage() {
         </motion.div>
 
         {/* Stars (lightweight, crisp) */}
-        <motion.div style={{ y: skyY }} className="absolute inset-0 opacity-80">
+        <motion.div style={{ y: skyY }} className="absolute inset-0 opacity-80 motion-reduce:hidden">
           {Array.from({ length: 34 }).map((_, i) => (
             <div
               // eslint-disable-next-line react/no-array-index-key
@@ -166,12 +166,54 @@ export default function HomePage() {
           ))}
         </motion.div>
 
-        {/* Floating clouds (no blur) */}
-        <motion.div style={{ y: cloudsY }} className="absolute inset-0">
-          <div className="absolute top-24 left-10 h-16 w-44 rounded-full bg-snow/5 border border-white/5" />
-          <div className="absolute top-40 left-44 h-14 w-36 rounded-full bg-snow/5 border border-white/5" />
-          <div className="absolute top-28 right-16 h-16 w-48 rounded-full bg-snow/5 border border-white/5" />
-          <div className="absolute top-52 right-52 h-14 w-36 rounded-full bg-snow/5 border border-white/5" />
+        {/* Floating clouds (drifting bands) */}
+        <motion.div style={{ y: cloudsY }} className="absolute inset-0 motion-reduce:hidden">
+          <motion.div
+            className="absolute inset-0"
+            animate={{ x: [-60, 60, -60] }}
+            transition={{ duration: 28, repeat: Infinity, ease: 'linear' }}
+          >
+            <div className="absolute top-24 left-10 h-16 w-44 rounded-full bg-snow/5 border border-white/5" />
+            <div className="absolute top-40 left-44 h-14 w-36 rounded-full bg-snow/5 border border-white/5" />
+            <div className="absolute top-28 right-16 h-16 w-48 rounded-full bg-snow/5 border border-white/5" />
+            <div className="absolute top-52 right-52 h-14 w-36 rounded-full bg-snow/5 border border-white/5" />
+          </motion.div>
+
+          <motion.div
+            className="absolute inset-0 opacity-70"
+            animate={{ x: [80, -80, 80] }}
+            transition={{ duration: 36, repeat: Infinity, ease: 'linear' }}
+          >
+            <div className="absolute top-36 left-24 h-12 w-40 rounded-full bg-snow/5 border border-white/5" />
+            <div className="absolute top-60 left-80 h-10 w-28 rounded-full bg-snow/5 border border-white/5" />
+            <div className="absolute top-44 right-28 h-12 w-44 rounded-full bg-snow/5 border border-white/5" />
+          </motion.div>
+        </motion.div>
+
+        {/* Occasional shooting stars */}
+        <motion.div style={{ y: skyY }} className="absolute inset-0 motion-reduce:hidden">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <motion.div
+              // eslint-disable-next-line react/no-array-index-key
+              key={i}
+              className="absolute"
+              style={{
+                top: `${14 + i * 12}%`,
+                left: `${10 + i * 22}%`,
+                transform: 'rotate(-18deg)'
+              }}
+              animate={{ opacity: [0, 0, 1, 0], x: [0, 0, 220, 260] }}
+              transition={{
+                duration: 3.2,
+                repeat: Infinity,
+                ease: 'easeInOut',
+                delay: 4 + i * 6
+              }}
+            >
+              <div className="h-px w-28 bg-gradient-to-r from-transparent via-snow/40 to-transparent" />
+              <div className="mt-[-2px] h-1.5 w-1.5 rounded-full bg-snow/40" />
+            </motion.div>
+          ))}
         </motion.div>
 
         {/* Ornaments */}
