@@ -74,7 +74,7 @@ export default function HomePage() {
         title: 'Share a Wish',
         description: 'Tap to generate a cheerful 2026 greeting.',
         href: null as string | null,
-        accent: 'from-red-500 to-gold'
+        accent: 'from-winter-purple to-gold'
       },
       {
         title: 'Snow Burst',
@@ -176,13 +176,25 @@ export default function HomePage() {
         {/* Ornaments */}
         <motion.div style={{ y: cloudsY }} className="absolute -top-10 left-0 right-0 h-44">
           <div className="absolute left-[10%] top-0 h-40 w-px bg-white/10" />
-          <div className="absolute left-[10%] top-32 h-7 w-7 rounded-full bg-red-500/70 shadow-sm" />
+          <motion.div
+            className="absolute left-[10%] top-32 h-7 w-7 rounded-full bg-winter-purple/50 shadow-sm"
+            animate={{ y: [0, 6, 0], opacity: [0.7, 1, 0.7] }}
+            transition={{ duration: 3.6, repeat: Infinity, ease: 'easeInOut' }}
+          />
 
           <div className="absolute left-[38%] top-0 h-44 w-px bg-white/10" />
-          <div className="absolute left-[38%] top-36 h-8 w-8 rounded-full bg-gold/70 shadow-sm" />
+          <motion.div
+            className="absolute left-[38%] top-36 h-8 w-8 rounded-full bg-gold/60 shadow-sm"
+            animate={{ y: [0, 8, 0], opacity: [0.65, 1, 0.65] }}
+            transition={{ duration: 4.2, repeat: Infinity, ease: 'easeInOut' }}
+          />
 
           <div className="absolute left-[72%] top-0 h-36 w-px bg-white/10" />
-          <div className="absolute left-[72%] top-28 h-7 w-7 rounded-full bg-pine-light/70 shadow-sm" />
+          <motion.div
+            className="absolute left-[72%] top-28 h-7 w-7 rounded-full bg-pine-light/50 shadow-sm"
+            animate={{ y: [0, 7, 0], opacity: [0.65, 1, 0.65] }}
+            transition={{ duration: 3.9, repeat: Infinity, ease: 'easeInOut' }}
+          />
         </motion.div>
 
         {/* Hills / snow ground */}
@@ -248,14 +260,14 @@ export default function HomePage() {
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
               <div className="inline-flex items-center gap-2 rounded-full px-4 py-2 glass-effect mb-6">
                 <span className="text-gold">✨</span>
-                <span className="text-snow-dark text-sm">Magical • Joyful • Friendly • Celebratory</span>
+                <span className="text-snow-dark text-sm">Scene • Activities • Letters • Sparkle</span>
               </div>
 
               <h1 className="font-sans text-5xl sm:text-6xl font-extrabold tracking-tight text-snow">
                 Happy New Year <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold via-gold-light to-gold">2026</span>
               </h1>
               <p className="mt-5 text-lg text-snow-dark max-w-xl">
-                A playful winter playground—count down, click for sparkle, and send warm letters.
+                A playful winter world—watch the countdown, tap for sparkle, and send warm New Year letters.
               </p>
 
               <div className="mt-8 flex flex-col sm:flex-row gap-3">
@@ -274,6 +286,17 @@ export default function HomePage() {
                   Explore Activities
                 </Link>
               </div>
+
+              <div className="mt-4 flex flex-wrap gap-2 text-xs">
+                <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 glass-effect text-snow-dark">
+                  <span className="h-1.5 w-1.5 rounded-full bg-gold/80" />
+                  Tap anywhere for sparkles
+                </span>
+                <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 glass-effect text-snow-dark">
+                  <span className="h-1.5 w-1.5 rounded-full bg-pine-light/70" />
+                  Sound is optional (default off)
+                </span>
+              </div>
             </motion.div>
 
             {/* Animated illustration (flat + soft 3D feel) */}
@@ -291,11 +314,11 @@ export default function HomePage() {
                   <div className="absolute -bottom-24 -left-20 h-56 w-56 rounded-full bg-winter-blue/10 blur-2xl" />
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-2">
-                      <div className="h-3 w-3 rounded-full bg-red-500/80" />
-                      <div className="h-3 w-3 rounded-full bg-gold/80" />
-                      <div className="h-3 w-3 rounded-full bg-pine-light/80" />
+                      <div className="h-3 w-3 rounded-full bg-winter-purple/60" />
+                      <div className="h-3 w-3 rounded-full bg-gold/70" />
+                      <div className="h-3 w-3 rounded-full bg-pine-light/60" />
                     </div>
-                    <div className="text-xs text-snow-dark">Winter Mode</div>
+                    <div className="text-xs text-snow-dark">Winter Console</div>
                   </div>
 
                   <motion.div
@@ -348,13 +371,20 @@ export default function HomePage() {
             transition={{ duration: 0.6 }}
             className="mb-8"
           >
-            <h2 className="font-sans text-3xl sm:text-4xl font-extrabold text-snow">Playful activities</h2>
-            <p className="mt-2 text-snow-dark max-w-2xl">
-              Hover, tap, and explore—every card has a little winter magic.
-            </p>
+            <h2 className="font-sans text-3xl sm:text-4xl font-extrabold text-snow">Activities</h2>
+            <p className="mt-2 text-snow-dark max-w-2xl">Pick a tile—each one is a tiny winter moment.</p>
           </motion.div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="relative">
+            <div className="pointer-events-none absolute inset-x-0 -top-2 bottom-0 hidden lg:block" aria-hidden="true">
+              <div className="absolute left-6 right-6 top-14 h-px bg-white/10" />
+              <div className="absolute left-6 right-6 top-14 h-px bg-gradient-to-r from-transparent via-gold/20 to-transparent" />
+              <div className="absolute left-16 top-14 h-2 w-2 rounded-full bg-gold/60" />
+              <div className="absolute left-1/2 top-14 h-2 w-2 -translate-x-1/2 rounded-full bg-winter-blue/40" />
+              <div className="absolute right-16 top-14 h-2 w-2 rounded-full bg-pine-light/50" />
+            </div>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {cards.map((c, idx) => {
               const icon =
                 c.title === 'Write a Letter'
@@ -372,7 +402,7 @@ export default function HomePage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: '-60px' }}
                   transition={{ duration: 0.45, delay: idx * 0.05 }}
-                  whileHover={{ scale: 1.03 }}
+                  whileHover={{ scale: 1.03, y: -2 }}
                   whileTap={{ scale: 0.98 }}
                   className="group h-full"
                 >
@@ -423,6 +453,7 @@ export default function HomePage() {
                 </button>
               );
             })}
+            </div>
           </div>
 
           <div className="mt-10 text-center text-xs text-snow-dark">
