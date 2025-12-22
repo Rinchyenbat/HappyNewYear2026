@@ -26,7 +26,7 @@ const userSchema = new mongoose.Schema(
     avatarId: {
       type: String,
       required: true,
-      default: 'firework',
+      default: 'penguin',
       trim: true
     }
   },

@@ -25,7 +25,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [avatarId, setAvatarIdState] = useState<string>('penguin-01');
+  const [avatarId, setAvatarIdState] = useState<string>('penguin');
   const [username, setUsername] = useState<string>('');
   const [success, setSuccess] = useState(false);
 
@@ -111,7 +111,7 @@ export default function ProfilePage() {
             <div>
               <div className="text-snow font-semibold">Selected</div>
               <div className="text-snow-dark text-sm">
-                {AVATARS.find((a) => a.id === avatarId)?.name ?? 'Penguin (01)'}
+                {AVATARS.find((a) => a.id === avatarId)?.name ?? 'Penguin'}
               </div>
             </div>
           </div>

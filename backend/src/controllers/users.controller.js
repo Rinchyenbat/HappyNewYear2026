@@ -1,19 +1,44 @@
 import { User } from '../models/User.js';
 
 const ALLOWED_AVATAR_IDS = [
-  'firework',
-  'sparkle',
-  'party-hat',
-  'lantern',
-  'snowflake',
-  'penguin-party',
-  'polar-bear-party',
-  'rabbit-party',
-  'cat-confetti',
-  'fox-scarf',
-  'champagne-pop',
-  'midnight-star'
+  'penguin',
+  'polar-bear',
+  'rabbit',
+  'cat',
+  'fox',
+  'deer',
+  'owl',
+  'seal',
+  'wolf',
+  'dog',
+  'panda',
+  'koala',
+  'tiger',
+  'lion',
+  'elephant',
+  'giraffe',
+  'zebra',
+  'monkey',
+  'raccoon',
+  'squirrel',
+  'hedgehog',
+  'otter',
+  'dolphin',
+  'whale',
+  'crocodile',
+  'frog',
+  'turtle',
+  'chick',
+  'cow',
+  'horse'
 ];
+
+const DEFAULT_AVATAR_ID = 'penguin';
+
+function normalizeAvatarId(value) {
+  const v = String(value ?? '').trim();
+  return ALLOWED_AVATAR_IDS.includes(v) ? v : DEFAULT_AVATAR_ID;
+}
 
 export async function listUsers(req, res) {
   const me = req.user.id;
@@ -31,12 +56,17 @@ export async function listUsers(req, res) {
 export async function getMyProfile(req, res) {
   const me = req.user.id;
 
-  const user = await User.findById(me)
-    .select({ username: 1, role: 1, avatarId: 1 })
-    .lean();
+  const user = await User.findById(me).select({ username: 1, role: 1, avatarId: 1 }).lean();
 
   if (!user) {
     return res.status(401).json({ error: { message: 'User not found' } });
+  }
+
+  const avatarId = normalizeAvatarId(user.avatarId);
+
+  // Auto-migrate any legacy/invalid avatarId so the UI never sees a broken value.
+  if (avatarId !== (user.avatarId ?? DEFAULT_AVATAR_ID)) {
+    await User.updateOne({ _id: me }, { $set: { avatarId } });
   }
 
   return res.status(200).json({
@@ -44,7 +74,7 @@ export async function getMyProfile(req, res) {
       id: String(user._id),
       username: user.username,
       role: user.role,
-      avatarId: user.avatarId ?? 'firework'
+      avatarId
     }
   });
 }
@@ -72,7 +102,7 @@ export async function updateMyProfile(req, res) {
       id: String(user._id),
       username: user.username,
       role: user.role,
-      avatarId: user.avatarId ?? 'firework'
+      avatarId: normalizeAvatarId(user.avatarId)
     }
   });
 }
