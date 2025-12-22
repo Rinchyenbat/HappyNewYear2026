@@ -1,4 +1,7 @@
+import createError from 'http-errors';
+import mongoose from 'mongoose';
 import { LoginLog } from '../models/LoginLog.js';
+import { Letter } from '../models/Letter.js';
 import { Message } from '../models/Message.js';
 import { PendingFacebookLogin } from '../models/PendingFacebookLogin.js';
 import { User } from '../models/User.js';
@@ -112,4 +115,60 @@ export async function approvePendingFacebookLogin(req, res) {
   );
 
   return res.json({ status: 'approved', userId: String(created._id), username: created.username });
+}
+
+export async function listUsers(req, res) {
+  const users = await User.find({})
+    .select({ username: 1, role: 1, facebookId: 1, createdAt: 1 })
+    .sort({ role: 1, username: 1 })
+    .lean();
+
+  return res.status(200).json({
+    users: users.map((u) => ({
+      id: String(u._id),
+      username: u.username,
+      role: u.role,
+      facebookId: u.facebookId,
+      createdAt: u.createdAt
+    }))
+  });
+}
+
+export async function deleteUserById(req, res) {
+  const userId = String(req.params?.id ?? '').trim();
+  if (!mongoose.isValidObjectId(userId)) {
+    throw createError(400, 'Invalid user id');
+  }
+
+  if (req.user?.id === userId) {
+    throw createError(400, 'You cannot delete your own account');
+  }
+
+  const user = await User.findById(userId).select({ role: 1, facebookId: 1, username: 1 }).lean();
+  if (!user) {
+    throw createError(404, 'User not found');
+  }
+
+  if (user.role === 'admin') {
+    throw createError(403, 'Cannot delete admin user');
+  }
+
+  const [lettersResult, messagesResult, loginLogsResult] = await Promise.all([
+    Letter.deleteMany({ $or: [{ fromUser: userId }, { toUser: userId }] }),
+    Message.deleteMany({ $or: [{ sender: userId }, { receiver: userId }] }),
+    LoginLog.deleteMany({ $or: [{ user: userId }, { facebookId: user.facebookId }] })
+  ]);
+
+  await PendingFacebookLogin.deleteOne({ facebookId: user.facebookId });
+  await User.deleteOne({ _id: userId });
+
+  return res.status(200).json({
+    deleted: {
+      userId,
+      username: user.username,
+      letters: lettersResult.deletedCount ?? 0,
+      messages: messagesResult.deletedCount ?? 0,
+      loginLogs: loginLogsResult.deletedCount ?? 0
+    }
+  });
 }
