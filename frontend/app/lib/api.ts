@@ -31,6 +31,7 @@ api.interceptors.response.use(
       if (typeof window !== 'undefined') {
         localStorage.removeItem('token');
         localStorage.removeItem('username');
+        localStorage.removeItem('avatarId');
         window.location.href = '/login';
       }
     }

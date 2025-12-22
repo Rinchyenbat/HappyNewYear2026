@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 
 import SnowEffect from './components/SnowEffect';
@@ -51,6 +51,9 @@ export default function HomePage() {
   const [wish, setWish] = useState<string>(() => randomWish());
   const [viewportWidth, setViewportWidth] = useState<number>(1200);
   const { particles, burst } = useBurstOverlay();
+
+  const activitiesRef = useRef<HTMLDivElement | null>(null);
+  const activitiesCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const { scrollY } = useScroll();
   const skyY = useTransform(scrollY, [0, 900], [0, 40]);
@@ -103,6 +106,231 @@ export default function HomePage() {
     } catch {
       // ignore
     }
+  }, []);
+
+  useEffect(() => {
+    const root = activitiesRef.current;
+    const canvas = activitiesCanvasRef.current;
+    if (!root || !canvas) return;
+
+    const prefersReducedMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const getColorFromClass = (className: string, property: 'color' | 'backgroundColor') => {
+      const el = document.createElement('span');
+      el.className = `${className} fixed -left-[9999px] -top-[9999px]`;
+      document.body.appendChild(el);
+      const computed = window.getComputedStyle(el);
+      const value = computed[property];
+      document.body.removeChild(el);
+      return value;
+    };
+
+    const colors = {
+      snow: getColorFromClass('text-snow', 'color'),
+      snowDark: getColorFromClass('text-snow-dark', 'color'),
+      gold: getColorFromClass('text-gold', 'color'),
+      pineLight: getColorFromClass('text-pine-light', 'color')
+    };
+
+    let dpr = 1;
+    let w = 0;
+    let h = 0;
+    let last = performance.now();
+    let raf = 0;
+    let points: Array<{ x: number; y: number }> = [];
+
+    const measure = () => {
+      const rect = root.getBoundingClientRect();
+      dpr = Math.min(2, window.devicePixelRatio || 1);
+      w = Math.max(1, Math.floor(rect.width));
+      h = Math.max(1, Math.floor(rect.height));
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const tiles = Array.from(root.querySelectorAll<HTMLElement>('[data-activity-tile]'));
+      points = tiles
+        .map((t) => {
+          const r = t.getBoundingClientRect();
+          const x = r.left - rect.left + r.width / 2;
+          const y = r.top - rect.top + 46;
+          return { x, y };
+        })
+        .filter((p) => Number.isFinite(p.x) && Number.isFinite(p.y));
+    };
+
+    const drawSnowEdge = () => {
+      // Soft snow strip at the bottom of the Activities block
+      const bandTop = h - 110;
+      ctx.save();
+      ctx.globalAlpha = 0.18;
+      const g = ctx.createLinearGradient(0, bandTop, 0, h);
+      g.addColorStop(0, 'rgba(255,255,255,0.00)');
+      g.addColorStop(1, 'rgba(255,255,255,0.22)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, bandTop, w, 110);
+
+      ctx.globalAlpha = 0.12;
+      ctx.fillStyle = colors.snow;
+      for (let i = 0; i < 10; i++) {
+        const cx = (i / 9) * w;
+        const rr = 120 + (i % 4) * 36;
+        ctx.beginPath();
+        ctx.arc(cx, h + 40, rr, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    };
+
+    const drawPath = (t: number) => {
+      if (points.length < 2) return;
+
+      ctx.save();
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      // Base line
+      ctx.globalAlpha = 0.18;
+      ctx.strokeStyle = colors.snow;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(points[0].x, points[0].y);
+      for (let i = 1; i < points.length; i++) {
+        const p0 = points[i - 1];
+        const p1 = points[i];
+        const mx = (p0.x + p1.x) / 2;
+        ctx.quadraticCurveTo(mx, p0.y + 18, p1.x, p1.y);
+      }
+      ctx.stroke();
+
+      // Glow line
+      ctx.globalAlpha = 0.10;
+      ctx.strokeStyle = colors.gold;
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(points[0].x, points[0].y);
+      for (let i = 1; i < points.length; i++) {
+        const p0 = points[i - 1];
+        const p1 = points[i];
+        const mx = (p0.x + p1.x) / 2;
+        ctx.quadraticCurveTo(mx, p0.y + 18, p1.x, p1.y);
+      }
+      ctx.stroke();
+
+      // Nodes
+      for (let i = 0; i < points.length; i++) {
+        const p = points[i];
+        const pulse = 0.5 + 0.5 * Math.sin(t * 0.002 + i * 1.7);
+        ctx.globalAlpha = 0.22 + pulse * 0.18;
+        ctx.fillStyle = i === 0 ? colors.pineLight : colors.gold;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 4.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.globalAlpha = 0.10 + pulse * 0.10;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 10.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Traveler dot
+      const seg = Math.max(1, points.length - 1);
+      const progress = (t * 0.00008) % 1;
+      const idx = Math.min(seg - 1, Math.floor(progress * seg));
+      const localT = progress * seg - idx;
+      const a = points[idx];
+      const b = points[idx + 1];
+      const x = a.x + (b.x - a.x) * localT;
+      const y = a.y + (b.y - a.y) * localT;
+      ctx.globalAlpha = 0.55;
+      ctx.fillStyle = colors.snow;
+      ctx.beginPath();
+      ctx.arc(x, y, 2.4, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.globalAlpha = 0.18;
+      ctx.fillStyle = colors.gold;
+      ctx.beginPath();
+      ctx.arc(x, y, 8.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    };
+
+    const drawSparkles = (t: number) => {
+      if (points.length === 0) return;
+      ctx.save();
+      ctx.globalAlpha = 0.14;
+      ctx.fillStyle = colors.snow;
+      for (let i = 0; i < points.length; i++) {
+        const p = points[i];
+        for (let s = 0; s < 4; s++) {
+          const a = (t * 0.0009 + i * 1.2 + s * 0.9) % (Math.PI * 2);
+          const rr = 18 + s * 10;
+          const x = p.x + Math.cos(a) * rr;
+          const y = p.y + Math.sin(a) * (rr * 0.55);
+          const r = 1.2 + (s % 2) * 0.6;
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      ctx.restore();
+    };
+
+    const render = (now: number) => {
+      const dt = now - last;
+      last = now;
+      // Light throttle when tab is backgrounded
+      if (dt > 250) {
+        raf = requestAnimationFrame(render);
+        return;
+      }
+
+      ctx.clearRect(0, 0, w, h);
+      drawSnowEdge();
+      drawPath(now);
+      drawSparkles(now);
+
+      raf = requestAnimationFrame(render);
+    };
+
+    const onResize = () => {
+      measure();
+      if (prefersReducedMotion) {
+        ctx.clearRect(0, 0, w, h);
+        drawSnowEdge();
+        drawPath(performance.now());
+        return;
+      }
+    };
+
+    measure();
+    window.addEventListener('resize', onResize, { passive: true });
+    const ro = new ResizeObserver(onResize);
+    ro.observe(root);
+
+    if (prefersReducedMotion) {
+      ctx.clearRect(0, 0, w, h);
+      drawSnowEdge();
+      drawPath(performance.now());
+    } else {
+      raf = requestAnimationFrame(render);
+    }
+
+    return () => {
+      window.removeEventListener('resize', onResize);
+      ro.disconnect();
+      if (raf) cancelAnimationFrame(raf);
+    };
   }, []);
 
   useEffect(() => {
@@ -533,14 +761,12 @@ export default function HomePage() {
             <p className="mt-2 text-snow-dark max-w-2xl">Pick a tile—each one is a tiny winter moment.</p>
           </motion.div>
 
-          <div className="relative">
-            <div className="pointer-events-none absolute inset-x-0 -top-2 bottom-0 hidden lg:block" aria-hidden="true">
-              <div className="absolute left-6 right-6 top-14 h-px bg-white/10" />
-              <div className="absolute left-6 right-6 top-14 h-px bg-gradient-to-r from-transparent via-gold/20 to-transparent" />
-              <div className="absolute left-16 top-14 h-2 w-2 rounded-full bg-gold/60" />
-              <div className="absolute left-1/2 top-14 h-2 w-2 -translate-x-1/2 rounded-full bg-winter-blue/40" />
-              <div className="absolute right-16 top-14 h-2 w-2 rounded-full bg-pine-light/50" />
-            </div>
+          <div ref={activitiesRef} className="relative">
+            <canvas
+              ref={activitiesCanvasRef}
+              className="pointer-events-none absolute inset-0 -z-10"
+              aria-hidden="true"
+            />
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {cards.map((c, idx) => {
@@ -592,6 +818,7 @@ export default function HomePage() {
                     href={c.href}
                     onClick={(e) => onCardClick(e, { kind: 'stars' })}
                     className="block"
+                    data-activity-tile
                   >
                     {content}
                   </Link>
@@ -606,6 +833,7 @@ export default function HomePage() {
                   type="button"
                   className="text-left"
                   onClick={(e) => onCardClick(e, { kind, action })}
+                  data-activity-tile
                 >
                   {content}
                 </button>

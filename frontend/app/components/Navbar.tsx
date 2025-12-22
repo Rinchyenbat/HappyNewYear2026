@@ -3,17 +3,37 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { getUserRole, getUsername, logout } from '../lib/auth';
+import { getAuthToken, getAvatarId, getUserRole, getUsername, logout, setAvatarId } from '../lib/auth';
 import { useEffect, useState } from 'react';
+import api from '../lib/api';
+import { AvatarIcon } from '../lib/avatars';
 
 export default function Navbar() {
   const pathname = usePathname();
   const [username, setUsername] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
+  const [avatarId, setAvatarIdState] = useState<string | null>(null);
 
   useEffect(() => {
     setUsername(getUsername());
     setRole(getUserRole());
+    setAvatarIdState(getAvatarId());
+
+    const token = getAuthToken();
+    if (!token) return;
+
+    api
+      .get<{ user: { avatarId?: string } }>('/users/profile')
+      .then((res) => {
+        const next = res.data?.user?.avatarId;
+        if (typeof next === 'string' && next.trim()) {
+          setAvatarId(next);
+          setAvatarIdState(next);
+        }
+      })
+      .catch(() => {
+        // ignore
+      });
   }, []);
 
   const isAdmin = role === 'admin';
@@ -22,7 +42,8 @@ export default function Navbar() {
     : [
         { href: '/inbox', label: 'Inbox' },
         { href: '/sent', label: 'Sent' },
-        { href: '/write', label: 'Write Letter' }
+        { href: '/write', label: 'Write Letter' },
+        { href: '/profile', label: 'Profile' }
       ];
   const brandHref = isAdmin ? '/admin' : '/inbox';
 
@@ -68,9 +89,10 @@ export default function Navbar() {
 
             <div className="flex items-center space-x-4 ml-4 pl-4 border-l border-white/10">
               {username && (
-                <span className="text-sm text-snow-dark">
-                  {username}
-                </span>
+                <div className="flex items-center gap-2">
+                  <AvatarIcon avatarId={avatarId} className="h-9 w-9" />
+                  <span className="text-sm text-snow-dark">{username}</span>
+                </div>
               )}
               <button
                 onClick={logout}

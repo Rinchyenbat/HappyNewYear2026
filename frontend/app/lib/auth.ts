@@ -19,12 +19,23 @@ export const setAuthToken = (token: string, username: string) => {
   }
 };
 
+export const setAvatarId = (avatarId: string) => {
+  if (!canUseBrowserStorage()) return;
+
+  try {
+    window.localStorage.setItem('avatarId', avatarId);
+  } catch {
+    // Ignore storage write failures
+  }
+};
+
 export const logout = () => {
   if (!canUseBrowserStorage()) return;
 
   try {
     window.localStorage.removeItem('token');
     window.localStorage.removeItem('username');
+    window.localStorage.removeItem('avatarId');
   } catch {
     // Ignore storage failures
   }
@@ -47,6 +58,16 @@ export const getUsername = (): string | null => {
 
   try {
     return window.localStorage.getItem('username');
+  } catch {
+    return null;
+  }
+};
+
+export const getAvatarId = (): string | null => {
+  if (!canUseBrowserStorage()) return null;
+
+  try {
+    return window.localStorage.getItem('avatarId');
   } catch {
     return null;
   }
