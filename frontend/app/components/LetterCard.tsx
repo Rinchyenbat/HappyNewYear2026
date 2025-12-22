@@ -18,8 +18,9 @@ interface LetterCardProps {
 export default function LetterCard({ letter, type = 'inbox' }: LetterCardProps) {
   const isInbox = type === 'inbox';
   const isUnread = type === 'inbox' && !letter.isRead;
-  const displayName = letter.from?.username || 'Unknown';
   const isAnonymous = Boolean(letter.isAnonymous);
+  const displayName = isInbox ? (letter.from?.username || 'Unknown') : (letter.to?.username || 'Unknown');
+  const isEnvelopeCard = type === 'inbox' || type === 'sent';
 
   return (
     <Link href={`/letter/${letter.id}`}>
@@ -30,11 +31,11 @@ export default function LetterCard({ letter, type = 'inbox' }: LetterCardProps) 
         transition={{ duration: 0.3 }}
         className={`
           relative cursor-pointer
-          ${isInbox ? '' : 'rounded-lg overflow-hidden glass-effect hover:bg-white/10 p-6 letter-shadow'}
+          ${isEnvelopeCard ? '' : 'rounded-lg overflow-hidden glass-effect hover:bg-white/10 p-6 letter-shadow'}
           transition-all
         `}
       >
-        {isInbox && (
+        {isEnvelopeCard && (
           <>
             {/* Keep envelope fully visible */}
             <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg">
@@ -47,21 +48,23 @@ export default function LetterCard({ letter, type = 'inbox' }: LetterCardProps) 
                 priority={false}
               />
 
-              {/* Sender strip (no 'From:' label) */}
-              <div className="absolute left-[12%] right-[12%] top-[10%]">
+              {/* Name strip (no 'From:' / 'To:' label) */}
+              <div className="absolute left-[12%] right-[12%] top-[10%] flex items-center justify-between gap-2">
                 <div
                   className={
                     dancingScript.className +
-                    ' text-snow text-lg md:text-xl drop-shadow-sm truncate max-w-[82%]'
+                    ' text-snow text-lg md:text-xl drop-shadow-sm truncate'
                   }
                   title={isAnonymous ? 'Anonymous' : displayName}
                 >
                   {isAnonymous ? 'Anonymous' : displayName}
                 </div>
+
+                {type === 'sent' && isAnonymous && <AnonymousBadge />}
               </div>
 
-              {/* Date + avatar (avatar on the right, date on the left) */}
-              <div className="absolute left-[12%] right-[12%] bottom-[14%] flex items-center justify-between">
+              {/* Date + meta (meta on the right, date on the left) */}
+              <div className="absolute left-[12%] right-[12%] bottom-[14%] flex items-center justify-between gap-2">
                 <span className="text-xs text-midnight truncate max-w-[68%]">
                   {new Date(letter.createdAt).toLocaleDateString('en-US', {
                     year: 'numeric',
@@ -72,7 +75,7 @@ export default function LetterCard({ letter, type = 'inbox' }: LetterCardProps) 
 
                 <div className="flex items-center gap-2">
                   {isUnread && <span className="inline-block w-2 h-2 bg-gold rounded-full animate-pulse" />}
-                  {!isAnonymous && (
+                  {type === 'inbox' && !isAnonymous && (
                     <div className="h-12 w-12 rounded-md bg-white/10 border border-dashed border-white/20 p-1">
                       <AvatarIcon avatarId={letter.from?.avatarId} frame={false} className="h-full w-full" />
                     </div>
@@ -83,39 +86,21 @@ export default function LetterCard({ letter, type = 'inbox' }: LetterCardProps) 
           </>
         )}
 
-        {!isInbox && (
+        {!isEnvelopeCard && (
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gold/50 to-transparent" />
         )}
 
-        {type === 'sent' ? (
+        {type === 'sent' && !isEnvelopeCard ? (
           <>
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-sm text-snow-dark">To:</span>
-                  <span className="text-snow">{letter.to?.username}</span>
-                  {isAnonymous && <AnonymousBadge />}
-                </div>
-
-                <h3 className={`text-lg font-serif ${isUnread ? 'font-bold text-snow' : 'text-snow-dark'}`}>
-                  {letter.title || 'Untitled Letter'}
-                </h3>
-              </div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-sm text-snow-dark">To:</span>
+              <span className="text-snow">{letter.to?.username}</span>
+              {isAnonymous && <AnonymousBadge />}
             </div>
 
             {letter.body ? (
               <p className="text-sm text-snow-dark line-clamp-2 leading-relaxed">{letter.body}</p>
             ) : null}
-
-            <div className="mt-4 flex items-center justify-between text-xs text-snow-dark">
-              <span>
-                {new Date(letter.createdAt).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
-              </span>
-            </div>
           </>
         ) : null}
       </motion.div>
