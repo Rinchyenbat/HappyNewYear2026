@@ -48,7 +48,7 @@ export async function inbox(req, res) {
   const letters = await Letter.find({ toUser: me })
     .sort({ createdAt: -1 })
     .limit(200)
-    .populate({ path: 'fromUser', select: { username: 1 } })
+    .populate({ path: 'fromUser', select: { username: 1, avatarId: 1 } })
     .lean();
 
   res.status(200).json({
@@ -58,10 +58,15 @@ export async function inbox(req, res) {
         l.isAnonymous === true
           ? { username: 'Anonymous' }
           : l.fromUser
-            ? { id: String(l.fromUser._id), username: l.fromUser.username }
+            ? {
+                id: String(l.fromUser._id),
+                username: l.fromUser.username,
+                avatarId: l.fromUser.avatarId
+              }
             : null,
       title: l.title ?? null,
       body: l.body,
+      isAnonymous: Boolean(l.isAnonymous),
       isRead: Boolean(l.isRead),
       createdAt: l.createdAt
     }))
@@ -97,7 +102,7 @@ export async function getLetter(req, res) {
   }
 
   const letter = await Letter.findById(id)
-    .populate({ path: 'fromUser', select: { username: 1 } })
+    .populate({ path: 'fromUser', select: { username: 1, avatarId: 1 } })
     .populate({ path: 'toUser', select: { username: 1 } })
     .lean();
 
@@ -121,7 +126,11 @@ export async function getLetter(req, res) {
         letter.isAnonymous === true && isReceiver
           ? { username: 'Anonymous' }
           : letter.fromUser
-            ? { id: String(letter.fromUser._id), username: letter.fromUser.username }
+            ? {
+                id: String(letter.fromUser._id),
+                username: letter.fromUser.username,
+                avatarId: letter.fromUser.avatarId
+              }
             : null,
       to: letter.toUser ? { id: String(letter.toUser._id), username: letter.toUser.username } : null,
       title: letter.title ?? null,
@@ -147,7 +156,7 @@ export async function markRead(req, res) {
     { $set: { isRead: true } },
     { new: true }
   )
-    .populate({ path: 'fromUser', select: { username: 1 } })
+    .populate({ path: 'fromUser', select: { username: 1, avatarId: 1 } })
     .populate({ path: 'toUser', select: { username: 1 } })
     .lean();
 
@@ -161,7 +170,11 @@ export async function markRead(req, res) {
     updated.isAnonymous === true
       ? { username: 'Anonymous' }
       : updated.fromUser
-        ? { id: String(updated.fromUser._id), username: updated.fromUser.username }
+        ? {
+            id: String(updated.fromUser._id),
+            username: updated.fromUser.username,
+            avatarId: updated.fromUser.avatarId
+          }
         : null;
 
   res.status(200).json({

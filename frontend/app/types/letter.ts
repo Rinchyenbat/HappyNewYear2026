@@ -3,6 +3,7 @@ export interface Letter {
   from: {
     id?: string;
     username: string;
+    avatarId?: string;
   } | null;
   to?: {
     id: string;

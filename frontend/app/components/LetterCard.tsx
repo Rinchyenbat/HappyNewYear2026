@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Letter } from '../types/letter';
 import Link from 'next/link';
 import AnonymousBadge from './AnonymousBadge';
+import { AvatarIcon } from '../lib/avatars';
 
 interface LetterCardProps {
   letter: Letter;
@@ -13,7 +14,7 @@ interface LetterCardProps {
 export default function LetterCard({ letter, type = 'inbox' }: LetterCardProps) {
   const isUnread = type === 'inbox' && !letter.isRead;
   const displayName = letter.from?.username || 'Unknown';
-  const isAnonymous = displayName === 'Anonymous';
+  const isAnonymous = Boolean(letter.isAnonymous);
 
   return (
     <Link href={`/letter/${letter.id}`}>
@@ -23,64 +24,95 @@ export default function LetterCard({ letter, type = 'inbox' }: LetterCardProps) 
         whileHover={{ scale: 1.02, y: -4 }}
         transition={{ duration: 0.3 }}
         className={`
-          relative p-6 rounded-lg cursor-pointer
+          relative p-6 rounded-lg cursor-pointer overflow-hidden
           glass-effect hover:bg-white/10 transition-all
           letter-shadow
           ${isUnread ? 'border-2 border-gold/50' : 'border border-white/10'}
         `}
       >
-        {/* Envelope visual effect */}
+        {/* Envelope shine */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gold/50 to-transparent" />
-        
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              {type === 'inbox' ? (
-                <>
+
+        {type === 'inbox' ? (
+          <>
+            {/* Envelope lines */}
+            <div className="pointer-events-none absolute inset-0 opacity-60">
+              <div className="absolute left-1/2 top-1/2 h-[160%] w-px bg-white/10 -translate-x-1/2 -translate-y-1/2 rotate-45" />
+              <div className="absolute left-1/2 top-1/2 h-[160%] w-px bg-white/10 -translate-x-1/2 -translate-y-1/2 -rotate-45" />
+              <div className="absolute left-0 top-1/2 h-px w-full bg-white/10" />
+            </div>
+
+            {/* Stamp */}
+            {!isAnonymous && (
+              <div className="absolute top-4 right-4">
+                <div className="h-14 w-14 rounded-md bg-white/10 border border-dashed border-white/20 p-1">
+                  <AvatarIcon avatarId={letter.from?.avatarId} frame={false} className="h-full w-full" />
+                </div>
+              </div>
+            )}
+
+            <div className="relative">
+              {!isAnonymous && (
+                <div className="flex items-center gap-2 mb-2 pr-16">
                   <span className="text-sm text-snow-dark">From:</span>
-                  {isAnonymous ? (
-                    <AnonymousBadge />
-                  ) : (
-                    <span className={`${isUnread ? 'font-bold text-gold' : 'text-snow'}`}>
-                      {displayName}
-                    </span>
-                  )}
-                </>
-              ) : (
-                <>
+                  <span className={`${isUnread ? 'font-bold text-gold' : 'text-snow'}`}>{displayName}</span>
+                </div>
+              )}
+
+              <h3
+                className={`text-xl font-serif leading-snug pr-16 ${
+                  isUnread ? 'font-bold text-snow' : 'text-snow-dark'
+                }`}
+              >
+                {letter.title || 'Untitled Letter'}
+              </h3>
+
+              <div className="mt-6 flex items-center justify-between text-xs text-snow-dark">
+                <span>
+                  {new Date(letter.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </span>
+
+                {isUnread && (
+                  <span className="inline-block w-2 h-2 bg-gold rounded-full animate-pulse" />
+                )}
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
                   <span className="text-sm text-snow-dark">To:</span>
                   <span className="text-snow">{letter.to?.username}</span>
-                </>
-              )}
+                  {isAnonymous && <AnonymousBadge />}
+                </div>
+
+                <h3 className={`text-lg font-serif ${isUnread ? 'font-bold text-snow' : 'text-snow-dark'}`}>
+                  {letter.title || 'Untitled Letter'}
+                </h3>
+              </div>
             </div>
-            
-            <h3 className={`text-lg font-serif ${isUnread ? 'font-bold text-snow' : 'text-snow-dark'}`}>
-              {letter.title || 'Untitled Letter'}
-            </h3>
-          </div>
 
-          {isUnread && (
-            <div className="flex-shrink-0 ml-4">
-              <span className="inline-block w-2 h-2 bg-gold rounded-full animate-pulse" />
+            {letter.body ? (
+              <p className="text-sm text-snow-dark line-clamp-2 leading-relaxed">{letter.body}</p>
+            ) : null}
+
+            <div className="mt-4 flex items-center justify-between text-xs text-snow-dark">
+              <span>
+                {new Date(letter.createdAt).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </span>
             </div>
-          )}
-        </div>
-
-        <p className="text-sm text-snow-dark line-clamp-2 leading-relaxed">
-          {letter.body}
-        </p>
-
-        <div className="mt-4 flex items-center justify-between text-xs text-snow-dark">
-          <span>{new Date(letter.createdAt).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-          })}</span>
-          
-          {isAnonymous && type === 'sent' && (
-            <span className="text-winter-purple">Anonymous</span>
-          )}
-        </div>
+          </>
+        )}
       </motion.div>
     </Link>
   );
