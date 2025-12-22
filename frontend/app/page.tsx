@@ -140,37 +140,38 @@ export default function HomePage() {
 
       {/* Winter scene background (inspired vibe, original composition) */}
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-        {/* Aurora / glow */}
+        {/* Clean sky gradients (no heavy blur) */}
         <motion.div style={{ y: skyY }} className="absolute inset-0">
-          <div className="absolute -top-28 left-1/2 -translate-x-1/2 h-[520px] w-[900px] rounded-full bg-winter-purple/10 blur-3xl" />
-          <div className="absolute -top-24 left-1/3 -translate-x-1/2 h-[460px] w-[760px] rounded-full bg-winter-blue/10 blur-3xl" />
-          <div className="absolute top-24 right-0 h-[520px] w-[520px] rounded-full bg-gold/5 blur-3xl" />
+          <div className="absolute inset-0 bg-gradient-to-b from-midnight-light/40 via-midnight/20 to-midnight-dark/90" />
+          <div className="absolute inset-0 bg-gradient-to-r from-winter-blue/10 via-winter-purple/10 to-transparent" />
+          <div className="absolute top-0 left-0 right-0 h-64 bg-gradient-to-b from-snow/5 to-transparent" />
         </motion.div>
 
-        {/* Stars (lightweight) */}
+        {/* Stars (lightweight, crisp) */}
         <motion.div style={{ y: skyY }} className="absolute inset-0 opacity-80">
           {Array.from({ length: 34 }).map((_, i) => (
             <div
               // eslint-disable-next-line react/no-array-index-key
               key={i}
-              className="absolute rounded-full bg-snow/70"
+              className={`absolute rounded-full bg-snow/70 ${i % 6 === 0 ? 'animate-pulse' : ''}`}
               style={{
                 width: i % 7 === 0 ? 3 : 2,
                 height: i % 7 === 0 ? 3 : 2,
                 top: `${(i * 37) % 88}%`,
                 left: `${(i * 53) % 96}%`,
-                opacity: i % 9 === 0 ? 0.95 : 0.55
+                opacity: i % 9 === 0 ? 0.95 : 0.55,
+                animationDelay: `${(i * 110) % 900}ms`
               }}
             />
           ))}
         </motion.div>
 
-        {/* Floating clouds */}
+        {/* Floating clouds (no blur) */}
         <motion.div style={{ y: cloudsY }} className="absolute inset-0">
-          <div className="absolute top-24 left-10 h-16 w-44 rounded-full bg-snow/5 blur-sm" />
-          <div className="absolute top-40 left-44 h-14 w-36 rounded-full bg-snow/5 blur-sm" />
-          <div className="absolute top-28 right-16 h-16 w-48 rounded-full bg-snow/5 blur-sm" />
-          <div className="absolute top-52 right-52 h-14 w-36 rounded-full bg-snow/5 blur-sm" />
+          <div className="absolute top-24 left-10 h-16 w-44 rounded-full bg-snow/5 border border-white/5" />
+          <div className="absolute top-40 left-44 h-14 w-36 rounded-full bg-snow/5 border border-white/5" />
+          <div className="absolute top-28 right-16 h-16 w-48 rounded-full bg-snow/5 border border-white/5" />
+          <div className="absolute top-52 right-52 h-14 w-36 rounded-full bg-snow/5 border border-white/5" />
         </motion.div>
 
         {/* Ornaments */}
@@ -199,10 +200,13 @@ export default function HomePage() {
 
         {/* Hills / snow ground */}
         <motion.div style={{ y: hillsY }} className="absolute -bottom-24 left-0 right-0">
-          <div className="absolute left-1/2 -translate-x-1/2 h-64 w-[140%] rounded-[999px] bg-pine/20 blur-sm" />
+          <div className="absolute left-1/2 -translate-x-1/2 h-64 w-[140%] rounded-[999px] bg-pine/20" />
           <div className="absolute left-1/2 -translate-x-1/2 top-16 h-72 w-[160%] rounded-[999px] bg-midnight-dark/70" />
           <div className="absolute left-1/2 -translate-x-1/2 top-12 h-56 w-[150%] rounded-[999px] bg-midnight/40" />
           <div className="absolute left-0 right-0 top-36 h-64 bg-gradient-to-t from-midnight-dark to-transparent" />
+
+          {/* Snow rim line */}
+          <div className="absolute left-1/2 -translate-x-1/2 top-14 h-px w-[160%] bg-snow/10" />
 
           {/* Simple tree silhouettes */}
           <div className="absolute left-[12%] top-14 h-0 w-0 border-l-[26px] border-l-transparent border-r-[26px] border-r-transparent border-b-[54px] border-b-pine/30" />
@@ -307,11 +311,11 @@ export default function HomePage() {
               className="relative"
             >
               <div className="relative mx-auto w-full max-w-lg">
-                <div className="absolute inset-0 rounded-[2rem] winter-gradient blur-xl opacity-60" />
+                <div className="absolute inset-0 rounded-[2rem] winter-gradient opacity-60" />
                 <div className="relative rounded-[2rem] glass-effect p-8 letter-shadow overflow-hidden">
                   {/* Soft 3D-ish bubbles */}
-                  <div className="absolute -top-16 -right-16 h-44 w-44 rounded-full bg-gold/10 blur-2xl" />
-                  <div className="absolute -bottom-24 -left-20 h-56 w-56 rounded-full bg-winter-blue/10 blur-2xl" />
+                  <div className="absolute -top-16 -right-16 h-44 w-44 rounded-full bg-gold/10" />
+                  <div className="absolute -bottom-24 -left-20 h-56 w-56 rounded-full bg-winter-blue/10" />
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-2">
                       <div className="h-3 w-3 rounded-full bg-winter-purple/60" />
