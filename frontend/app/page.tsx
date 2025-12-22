@@ -49,12 +49,22 @@ export default function HomePage() {
   const [countdown, setCountdown] = useState<Countdown>(() => getCountdown());
   const [soundOn, setSoundOn] = useState(false);
   const [wish, setWish] = useState<string>(() => randomWish());
+  const [viewportWidth, setViewportWidth] = useState<number>(1200);
   const { particles, burst } = useBurstOverlay();
 
   const { scrollY } = useScroll();
   const skyY = useTransform(scrollY, [0, 900], [0, 40]);
   const cloudsY = useTransform(scrollY, [0, 900], [0, 90]);
   const hillsY = useTransform(scrollY, [0, 900], [0, 160]);
+
+  const runners = useMemo(
+    () => [
+      { emoji: '🎅', lane: 0, scale: 1.0, duration: 14, delay: 0.5 },
+      { emoji: '🧝‍♂️', lane: 1, scale: 0.95, duration: 12, delay: 2.0 },
+      { emoji: '👺', lane: 2, scale: 0.9, duration: 16, delay: 4.0 }
+    ],
+    []
+  );
 
   const cards = useMemo(
     () => [
@@ -106,6 +116,13 @@ export default function HomePage() {
   useEffect(() => {
     const t = window.setInterval(() => setCountdown(getCountdown()), 250);
     return () => window.clearInterval(t);
+  }, []);
+
+  useEffect(() => {
+    const update = () => setViewportWidth(window.innerWidth || 1200);
+    update();
+    window.addEventListener('resize', update, { passive: true });
+    return () => window.removeEventListener('resize', update);
   }, []);
 
   const onCardClick = async (
@@ -260,6 +277,101 @@ export default function HomePage() {
           <div className="absolute right-[16%] top-16 h-0 w-0 border-l-[22px] border-l-transparent border-r-[22px] border-r-transparent border-b-[48px] border-b-pine/25" />
           <div className="absolute right-[16.7%] top-58 h-5 w-3 rounded bg-pine/25" />
         </motion.div>
+
+        {/* Village silhouettes + flicker windows */}
+        <div className="absolute left-0 right-0 bottom-[160px] h-28 opacity-80">
+          <div className="absolute left-1/2 -translate-x-1/2 top-8 h-px w-[140%] bg-white/10" />
+
+          {Array.from({ length: 12 }).map((_, i) => {
+            const w = 58 + (i % 4) * 18;
+            const h = 34 + ((i * 7) % 18);
+            const left = `${(i * 9) % 100}%`;
+            const base = i % 3 === 0 ? 'bg-midnight-dark/70' : i % 3 === 1 ? 'bg-midnight/60' : 'bg-midnight-light/50';
+
+            return (
+              <div
+                // eslint-disable-next-line react/no-array-index-key
+                key={i}
+                className="absolute"
+                style={{ left, bottom: 0, width: w, height: h }}
+              >
+                <div className={`absolute inset-0 rounded-md ${base} border border-white/10`} />
+                {/* Roof */}
+                <div className="absolute left-1/2 -translate-x-1/2 -top-5 h-0 w-0 border-l-[22px] border-l-transparent border-r-[22px] border-r-transparent border-b-[20px] border-b-midnight/70" />
+
+                {/* Windows */}
+                {Array.from({ length: 3 }).map((__, wi) => (
+                  <div
+                    // eslint-disable-next-line react/no-array-index-key
+                    key={wi}
+                    className="absolute rounded-sm bg-gold/30 shadow-[0_0_14px_rgba(0,0,0,0.0)]"
+                    style={{
+                      width: 10,
+                      height: 10,
+                      left: 10 + wi * 16,
+                      top: 10,
+                      opacity: 0.25 + ((i + wi) % 4) * 0.15,
+                      animation: 'pulse 2.6s ease-in-out infinite',
+                      animationDelay: `${(i * 210 + wi * 340) % 1200}ms`
+                    }}
+                  />
+                ))}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Snowy ground band (crisp, visible) */}
+        <div className="absolute left-0 right-0 bottom-0 h-[220px]">
+          <div className="absolute inset-0 bg-gradient-to-t from-snow/25 via-snow/10 to-transparent" />
+          <div className="absolute left-0 right-0 bottom-0 h-[170px] bg-gradient-to-t from-snow/35 to-transparent" />
+          {/* Soft edge using circles */}
+          <div className="absolute left-0 right-0 bottom-[120px] h-24 opacity-70">
+            {Array.from({ length: 14 }).map((_, i) => (
+              <div
+                // eslint-disable-next-line react/no-array-index-key
+                key={i}
+                className="absolute rounded-full bg-snow/15"
+                style={{
+                  width: 120 + (i % 5) * 34,
+                  height: 120 + (i % 5) * 34,
+                  left: `${i * 8}%`,
+                  bottom: -40 - (i % 3) * 10
+                }}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Running characters (big, obvious animation) */}
+        <div className="absolute left-0 right-0 bottom-[76px] h-24 motion-reduce:hidden">
+          {runners.map((r) => (
+            <motion.div
+              key={r.emoji}
+              className="absolute left-0"
+              style={{
+                bottom: r.lane * 8,
+                fontSize: `${28 * r.scale}px`,
+                filter: 'drop-shadow(0 10px 18px rgba(0,0,0,0.35))'
+              }}
+              initial={{ x: -80 }}
+              animate={{ x: viewportWidth + 120 }}
+              transition={{
+                duration: r.duration,
+                repeat: Infinity,
+                ease: 'linear',
+                delay: r.delay
+              }}
+            >
+              <motion.div
+                animate={{ y: [0, -3, 0] }}
+                transition={{ duration: 0.45, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                {r.emoji}
+              </motion.div>
+            </motion.div>
+          ))}
+        </div>
       </div>
 
       <header className="relative z-10">
