@@ -48,21 +48,21 @@ export default function LetterCard({ letter, type = 'inbox' }: LetterCardProps) 
               />
 
               {/* Sender strip (no 'From:' label) */}
-              <div className="absolute left-6 right-6 top-5 flex items-center justify-between">
-                <div className={`${dancingScript.className} text-snow text-xl md:text-2xl drop-shadow-sm`}>
+              <div className="absolute left-6 right-6 top-6">
+                <div
+                  className={
+                    dancingScript.className +
+                    ' text-snow text-lg md:text-xl drop-shadow-sm truncate max-w-[85%]'
+                  }
+                  title={isAnonymous ? 'Anonymous' : displayName}
+                >
                   {isAnonymous ? 'Anonymous' : displayName}
                 </div>
-
-                {!isAnonymous && (
-                  <div className="h-14 w-14 rounded-md bg-white/10 border border-dashed border-white/20 p-1">
-                    <AvatarIcon avatarId={letter.from?.avatarId} frame={false} className="h-full w-full" />
-                  </div>
-                )}
               </div>
 
-              {/* Date */}
-              <div className="absolute left-6 right-6 bottom-6 flex items-center justify-between text-xs text-midnight">
-                <span>
+              {/* Date + avatar (avatar on the right, date on the left) */}
+              <div className="absolute left-6 right-6 bottom-6 flex items-center justify-between">
+                <span className="text-xs text-midnight truncate max-w-[70%]">
                   {new Date(letter.createdAt).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
@@ -70,7 +70,14 @@ export default function LetterCard({ letter, type = 'inbox' }: LetterCardProps) 
                   })}
                 </span>
 
-                {isUnread && <span className="inline-block w-2 h-2 bg-gold rounded-full animate-pulse" />}
+                <div className="flex items-center gap-2">
+                  {isUnread && <span className="inline-block w-2 h-2 bg-gold rounded-full animate-pulse" />}
+                  {!isAnonymous && (
+                    <div className="h-12 w-12 rounded-md bg-white/10 border border-dashed border-white/20 p-1">
+                      <AvatarIcon avatarId={letter.from?.avatarId} frame={false} className="h-full w-full" />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </>
