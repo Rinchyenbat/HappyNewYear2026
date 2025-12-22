@@ -7,7 +7,7 @@ import Navbar from '../../components/Navbar';
 import LetterPaper from '../../components/LetterPaper';
 import SnowEffect from '../../components/SnowEffect';
 import api from '../../lib/api';
-import { isAuthenticated } from '../../lib/auth';
+import { getUsername, isAuthenticated } from '../../lib/auth';
 import { Letter, LetterResponse } from '../../types/letter';
 
 export default function LetterDetailPage() {
@@ -29,10 +29,17 @@ export default function LetterDetailPage() {
       try {
         const response = await api.get<LetterResponse>(`/letters/${id}`);
         setLetter(response.data.letter);
-        
-        // Mark as read if not already
-        if (!response.data.letter.isRead) {
-          await api.patch(`/letters/${id}/read`);
+
+        // Mark as read only when the current user is the recipient.
+        // If the sender opens their own sent letter, the backend correctly returns 404 for this endpoint.
+        const me = getUsername();
+        const isRecipient = Boolean(me && response.data.letter.to?.username === me);
+        if (isRecipient && !response.data.letter.isRead) {
+          try {
+            await api.patch(`/letters/${id}/read`);
+          } catch {
+            // Ignore mark-read failures so the letter can still be viewed.
+          }
         }
 
         // Delay the letter opening animation
