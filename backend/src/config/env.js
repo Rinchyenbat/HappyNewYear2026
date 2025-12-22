@@ -26,7 +26,23 @@ function requireMongoUri() {
 
 export const env = Object.freeze({
   NODE_ENV: process.env.NODE_ENV ?? 'development',
-  PORT: Number(process.env.PORT ?? 4000),
+  PORT: (() => {
+    const raw = process.env.PORT;
+    if (raw == null || String(raw).trim() === '') {
+      return 4000;
+    }
+    const port = Number(raw);
+    if (!Number.isInteger(port) || port <= 0) {
+      const nodeEnv = process.env.NODE_ENV ?? 'development';
+      if (nodeEnv === 'production') {
+        throw new Error(
+          `Invalid PORT. Expected a positive integer, received: ${JSON.stringify(raw)}`
+        );
+      }
+      return 4000;
+    }
+    return port;
+  })(),
   MONGODB_URI: requireMongoUri(),
   JWT_SECRET: requireEnv('JWT_SECRET'),
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN ?? '7d',
