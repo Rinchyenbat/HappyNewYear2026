@@ -29,16 +29,15 @@ export default function LetterCard({ letter, type = 'inbox' }: LetterCardProps) 
         whileHover={{ scale: 1.02, y: -4 }}
         transition={{ duration: 0.3 }}
         className={`
-          relative rounded-lg cursor-pointer overflow-hidden
-          ${isInbox ? 'border border-white/10 bg-white/5' : 'glass-effect hover:bg-white/10 p-6'}
-          transition-all letter-shadow
-          ${isUnread ? 'border-2 border-gold/50' : ''}
+          relative cursor-pointer
+          ${isInbox ? '' : 'rounded-lg overflow-hidden glass-effect hover:bg-white/10 p-6 letter-shadow'}
+          transition-all
         `}
       >
         {isInbox && (
           <>
             {/* Keep envelope fully visible */}
-            <div className="relative aspect-[4/3] w-full">
+            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg">
               <Image
                 src="/inbox-envelope.png"
                 alt="Envelope"
@@ -47,8 +46,6 @@ export default function LetterCard({ letter, type = 'inbox' }: LetterCardProps) 
                 className="object-contain"
                 priority={false}
               />
-              {/* Readability overlay */}
-              <div className="absolute inset-0 bg-gradient-to-br from-midnight/55 via-midnight/20 to-midnight/55" />
 
               {/* Sender strip (no 'From:' label) */}
               <div className="absolute left-6 right-6 top-5 flex items-center justify-between">
@@ -63,13 +60,8 @@ export default function LetterCard({ letter, type = 'inbox' }: LetterCardProps) 
                 )}
               </div>
 
-              {/* Title + date */}
-              <div className="absolute left-6 right-6 top-[38%]">
-                <h3 className={`text-xl font-serif leading-snug ${isUnread ? 'font-bold text-snow' : 'text-snow-dark'}`}>
-                  {letter.title || 'Untitled Letter'}
-                </h3>
-              </div>
-              <div className="absolute left-6 right-6 bottom-6 flex items-center justify-between text-xs text-snow-dark">
+              {/* Date */}
+              <div className="absolute left-6 right-6 bottom-6 flex items-center justify-between text-xs text-midnight">
                 <span>
                   {new Date(letter.createdAt).toLocaleDateString('en-US', {
                     year: 'numeric',
@@ -85,10 +77,7 @@ export default function LetterCard({ letter, type = 'inbox' }: LetterCardProps) 
         )}
 
         {!isInbox && (
-          <>
-            {/* Envelope shine */}
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gold/50 to-transparent" />
-          </>
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gold/50 to-transparent" />
         )}
 
         {type === 'sent' ? (
