@@ -18,11 +18,25 @@ export const app = express();
 
 app.disable('x-powered-by');
 
+// When deployed behind a reverse proxy (Render/Railway/etc.), trust the first proxy hop
+// so req.ip and rate limiting behave correctly.
+if (env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 app.use(helmet());
+
+const allowedOrigins = env.CORS_ORIGIN
+  ? env.CORS_ORIGIN
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean)
+  : [];
+
 app.use(
   cors({
-    origin: env.CORS_ORIGIN ? env.CORS_ORIGIN.split(',').map((s) => s.trim()) : false,
-    credentials: true
+    origin: allowedOrigins.length > 0 ? allowedOrigins : env.NODE_ENV === 'production' ? false : true,
+    credentials: false
   })
 );
 

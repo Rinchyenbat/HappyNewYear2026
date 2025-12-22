@@ -115,8 +115,8 @@ Frontend redirects to /inbox
 ```env
 FRONTEND_URL=http://localhost:3000
 DEV_AUTH_BYPASS=true
-INSTAGRAM_APP_ID=your_app_id
-INSTAGRAM_APP_SECRET=your_app_secret
+INSTAGRAM_CLIENT_ID=your_app_id
+INSTAGRAM_CLIENT_SECRET=your_app_secret
 INSTAGRAM_REDIRECT_URI=http://localhost:4000/auth/instagram/callback
 ```
 
@@ -174,7 +174,7 @@ NEXT_PUBLIC_INSTAGRAM_APP_ID=  # Optional: Leave empty for dev mode
 
 - [ ] Set `DEV_AUTH_BYPASS=false` in backend
 - [ ] Configure Instagram App credentials
-- [ ] Set `INSTAGRAM_APP_ID`, `INSTAGRAM_APP_SECRET`, `INSTAGRAM_REDIRECT_URI`
+- [ ] Set `INSTAGRAM_CLIENT_ID`, `INSTAGRAM_CLIENT_SECRET`, `INSTAGRAM_REDIRECT_URI`
 - [ ] Set `FRONTEND_URL` to production domain
 - [ ] Set `NEXT_PUBLIC_INSTAGRAM_APP_ID` in frontend
 - [ ] Set `NEXT_PUBLIC_API_URL` to production API

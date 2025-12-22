@@ -6,6 +6,8 @@
   "main": "src/server.js",
   "scripts": {
     "dev": "NODE_ENV=development nodemon src/server.js",
+    "seed:allowedUsers": "node src/seed/allowedInstagramUsers.seed.js",
+    "seed:ensureTwoUsers": "node src/seed/ensureTwoUsers.seed.js",
     "start": "node src/server.js"
   },
   "dependencies": {

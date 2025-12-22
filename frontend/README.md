@@ -71,8 +71,9 @@ This app uses **Instagram OAuth** for authentication (not manual Instagram ID in
 
 1. User clicks "Login with Instagram" button
 2. **Development Mode** (`NEXT_PUBLIC_INSTAGRAM_APP_ID` not set):
-   - Redirects to `${API_URL}/auth/instagram/callback?instagram_id=rinchyen_b`
-   - Backend uses DEV_AUTH_BYPASS to authenticate test user
+   - Redirects to `${API_URL}/auth/instagram/callback?instagram_id=...`
+   - Uses `NEXT_PUBLIC_DEV_INSTAGRAM_ID` to simulate one whitelisted user
+   - Backend uses DEV_AUTH_BYPASS to authenticate the selected test user
    - Backend redirects to `/login?token=...&username=...`
    
 3. **Production Mode** (`NEXT_PUBLIC_INSTAGRAM_APP_ID` set):
@@ -146,6 +147,9 @@ npm start
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:4000
+
+# Optional (development only): pick which whitelisted user you simulate in DEV_AUTH_BYPASS mode
+# NEXT_PUBLIC_DEV_INSTAGRAM_ID=6996374317
 ```
 
 ## License

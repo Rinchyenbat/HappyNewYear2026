@@ -8,6 +8,7 @@ import SnowEffect from '../components/SnowEffect';
 
 const INSTAGRAM_APP_ID = process.env.NEXT_PUBLIC_INSTAGRAM_APP_ID || '';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const DEV_INSTAGRAM_ID = process.env.NEXT_PUBLIC_DEV_INSTAGRAM_ID || '';
 
 function OAuthCallbackHandler({
   onError,
@@ -53,7 +54,17 @@ export default function LoginPage() {
     if (isDev) {
       // Development mode with DEV_AUTH_BYPASS
       // Backend will handle dev login and redirect back to frontend with token
-      window.location.href = `${API_URL}/auth/instagram/callback?instagram_id=rinchyen_b`;
+      const instagramId = DEV_INSTAGRAM_ID.trim();
+
+      if (!instagramId) {
+        setError(
+          'Development login is not configured. Set NEXT_PUBLIC_DEV_INSTAGRAM_ID to a whitelisted numeric instagram_id (or configure real Instagram OAuth).'
+        );
+        setLoading(false);
+        return;
+      }
+
+      window.location.href = `${API_URL}/auth/instagram/callback?instagram_id=${encodeURIComponent(instagramId)}`;
     } else {
       // Production: Redirect to backend /auth/instagram which initiates Instagram OAuth
       window.location.href = `${API_URL}/auth/instagram`;

@@ -48,11 +48,46 @@ npm run dev
 # Frontend will run on http://localhost:3000
 ```
 
+## 🚀 Deployment (Recommended)
+
+This repository is a monorepo:
+- `frontend/` is a Next.js app (deploy to Vercel)
+- `backend/` is an Express API (deploy to Render/Railway/Fly/etc.)
+
+### Frontend → Vercel
+- Import the repo into Vercel
+- Deploy using either:
+   - Project **Root Directory**: `frontend`, or
+   - Keep root as-is (this repo includes `vercel.json` to point Vercel at `frontend/`)
+
+Set env var on Vercel:
+- `NEXT_PUBLIC_API_URL` = your backend public URL (example: `https://hn2026-api.onrender.com`)
+- `NEXT_PUBLIC_INSTAGRAM_APP_ID` = your Instagram App ID / Client ID (enables real OAuth flow)
+
+### Backend → Render/Railway
+Create a Node web service from this repo and set:
+- **Root directory**: `backend`
+- **Build command**: `npm install`
+- **Start command**: `npm start`
+
+Required env vars for backend:
+- `MONGODB_URI`
+- `JWT_SECRET`
+- `FRONTEND_URL` = your frontend public URL (example: `https://your-app.vercel.app`)
+- `CORS_ORIGIN` = your Vercel domain(s), comma-separated
+   - example: `https://your-app.vercel.app,https://your-custom-domain.com`
+- `DEV_AUTH_BYPASS=false` (IMPORTANT: enable real Instagram OAuth in production)
+
+If using real Instagram OAuth in production (not DEV bypass), also set:
+- `INSTAGRAM_CLIENT_ID`
+- `INSTAGRAM_CLIENT_SECRET`
+- `INSTAGRAM_REDIRECT_URI` = `https://<backend-domain>/auth/instagram/callback` (must exactly match your Instagram App settings)
+
 ## 🔑 Authentication Flow
 
 ### Development Mode (DEV_AUTH_BYPASS=true)
 - Click "Login with Instagram" button
-- Backend automatically logs in as test user `rinchyen_b`
+- Frontend sends a numeric `instagram_id` to simulate a whitelisted user (development bypass)
 - No actual Instagram OAuth required
 - Perfect for local development
 
@@ -65,10 +100,9 @@ npm run dev
 - Redirects to frontend with JWT token
 
 **Whitelisted Test Users:**
-- Instagram ID: `rinchyen_b` → Username: rinchyen
-- Instagram ID: `odko6622` → Username: odko
-- Instagram ID: `_erdenesuvd` → Username: erdenesuvd
-- And 19 more users (see [backend/src/seed/allowedInstagramUsers.seed.js](backend/src/seed/allowedInstagramUsers.seed.js))
+- Instagram ID: `61740588898` → Username: Ninjbadgar
+- Instagram ID: `6996374317` → Username: Usukhbayar
+- And more users (see [backend/src/seed/allowedInstagramUsers.seed.js](backend/src/seed/allowedInstagramUsers.seed.js))
 
 ## 📱 Application Flow
 
@@ -218,7 +252,7 @@ frontend/
 cd backend
 
 # Test with DEV_AUTH_BYPASS
-curl http://localhost:4000/auth/instagram/callback?instagram_id=rinchyen_b
+curl http://localhost:4000/auth/instagram/callback?instagram_id=61740588898
 
 # Test protected endpoint
 curl http://localhost:4000/users/profile \
@@ -227,7 +261,7 @@ curl http://localhost:4000/users/profile \
 
 ### Frontend Testing
 1. Visit `http://localhost:3000`
-2. Login with Instagram ID: `rinchyen_b`
+2. Login with Instagram (dev bypass uses a whitelisted numeric instagram_id)
 3. Navigate through pages
 4. Write and send a letter
 5. Check inbox for received letters
@@ -251,19 +285,29 @@ curl http://localhost:4000/users/profile \
 ### Backend `.env`
 ```env
 PORT=4000
-MONGODB_URI=mongodb://localhost:27017/happynewyear2026
+MONGODB_URI=mongodb://127.0.0.1:27017/hn2026
 JWT_SECRET=your-secret-key-here
+JWT_EXPIRES_IN=7d
+
+# Frontend + CORS
+FRONTEND_URL=http://localhost:3000
+CORS_ORIGIN=http://localhost:3000
+
+# Development bypass (skip real Instagram OAuth and accept ?instagram_id=...)
 DEV_AUTH_BYPASS=true
 
 # Optional for production
-INSTAGRAM_APP_ID=your-instagram-app-id
-INSTAGRAM_APP_SECRET=your-instagram-app-secret
+INSTAGRAM_CLIENT_ID=your-instagram-app-id
+INSTAGRAM_CLIENT_SECRET=your-instagram-app-secret
 INSTAGRAM_REDIRECT_URI=http://localhost:4000/auth/instagram/callback
 ```
 
 ### Frontend `.env.local`
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:4000
+
+# Optional (development only): choose which whitelisted user you simulate in DEV_AUTH_BYPASS mode
+# NEXT_PUBLIC_DEV_INSTAGRAM_ID=6996374317
 ```
 
 ## 🎭 Anonymous Letter System

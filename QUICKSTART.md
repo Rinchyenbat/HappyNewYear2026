@@ -62,7 +62,7 @@ npm run dev
 
 1. Open browser: http://localhost:3000
 2. Click **"Login with Instagram"** button
-3. Automatically logs in as user `rinchyen`
+3. If using development bypass, set `NEXT_PUBLIC_DEV_INSTAGRAM_ID` to a whitelisted numeric Instagram ID
 4. You'll be redirected to `/inbox`
 
 ## Test the Features
@@ -95,15 +95,13 @@ pkill mongod
 Edit the login redirect in `frontend/app/login/page.tsx`:
 
 ```typescript
-// Change rinchyen_b to any whitelisted Instagram ID
-window.location.href = `${API_URL}/auth/instagram/callback?instagram_id=odko6622`;
+// Set NEXT_PUBLIC_DEV_INSTAGRAM_ID in frontend/.env.local instead of hardcoding
 ```
 
 Available test users:
-- `rinchyen_b` → username: `rinchyen`
-- `odko6622` → username: `odko`
-- `_erdenesuvd` → username: `erdenesuvd`
-- See all in `backend/src/seed/allowedInstagramUsers.seed.js`
+- `61740588898` → username: `Ninjbadgar`
+- `6996374317` → username: `Usukhbayar`
+- See all whitelisted IDs in `backend/src/seed/allowedInstagramUsers.seed.js`
 
 ## Troubleshooting
 

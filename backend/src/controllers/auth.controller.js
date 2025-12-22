@@ -102,11 +102,14 @@ export async function instagramOAuthLogin(req, res) {
 
 export async function instagramOAuthInitiate(req, res) {
   // Initiate Instagram OAuth flow
-  const appId = process.env.INSTAGRAM_APP_ID;
+  const appId = process.env.INSTAGRAM_CLIENT_ID || process.env.INSTAGRAM_APP_ID;
   const redirectUri = process.env.INSTAGRAM_REDIRECT_URI;
   
   if (!appId || !redirectUri) {
-    throw createError(500, 'Instagram OAuth not configured');
+    throw createError(
+      500,
+      'Instagram OAuth not configured (set INSTAGRAM_CLIENT_ID and INSTAGRAM_REDIRECT_URI)'
+    );
   }
   
   const instagramAuthUrl = `https://api.instagram.com/oauth/authorize?client_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user_profile&response_type=code`;
