@@ -12,6 +12,7 @@ interface LetterCardProps {
 }
 
 export default function LetterCard({ letter, type = 'inbox' }: LetterCardProps) {
+  const isInbox = type === 'inbox';
   const isUnread = type === 'inbox' && !letter.isRead;
   const displayName = letter.from?.username || 'Unknown';
   const isAnonymous = Boolean(letter.isAnonymous);
@@ -25,23 +26,23 @@ export default function LetterCard({ letter, type = 'inbox' }: LetterCardProps) 
         transition={{ duration: 0.3 }}
         className={`
           relative p-6 rounded-lg cursor-pointer overflow-hidden
-          glass-effect hover:bg-white/10 transition-all
-          letter-shadow
-          ${isUnread ? 'border-2 border-gold/50' : 'border border-white/10'}
+          ${isInbox ? 'border border-white/10 bg-white/5' : 'glass-effect hover:bg-white/10'}
+          transition-all letter-shadow
+          ${isUnread ? 'border-2 border-gold/50' : ''}
         `}
       >
+        {isInbox && (
+          <>
+            <div className="absolute inset-0 bg-[url('/inbox-envelope.png')] bg-cover bg-center opacity-95" />
+            <div className="absolute inset-0 bg-gradient-to-br from-midnight/70 via-midnight/35 to-midnight/70" />
+          </>
+        )}
+
         {/* Envelope shine */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gold/50 to-transparent" />
 
         {type === 'inbox' ? (
           <>
-            {/* Envelope lines */}
-            <div className="pointer-events-none absolute inset-0 opacity-60">
-              <div className="absolute left-1/2 top-1/2 h-[160%] w-px bg-white/10 -translate-x-1/2 -translate-y-1/2 rotate-45" />
-              <div className="absolute left-1/2 top-1/2 h-[160%] w-px bg-white/10 -translate-x-1/2 -translate-y-1/2 -rotate-45" />
-              <div className="absolute left-0 top-1/2 h-px w-full bg-white/10" />
-            </div>
-
             {/* Stamp */}
             {!isAnonymous && (
               <div className="absolute top-4 right-4">
@@ -51,7 +52,7 @@ export default function LetterCard({ letter, type = 'inbox' }: LetterCardProps) 
               </div>
             )}
 
-            <div className="relative">
+            <div className="relative z-10">
               {!isAnonymous && (
                 <div className="flex items-center gap-2 mb-2 pr-16">
                   <span className="text-sm text-snow-dark">From:</span>
