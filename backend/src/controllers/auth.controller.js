@@ -111,7 +111,8 @@ export async function facebookOAuthLogin(req, res) {
   const token = signLoginToken({
     userId: String(user._id),
     facebookId: user.facebookId,
-    username: user.username
+    username: user.username,
+    role: user.role
   });
 
   // Step I: Redirect to frontend with token

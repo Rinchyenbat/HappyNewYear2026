@@ -14,13 +14,14 @@ export function verifyAccessToken(token) {
 
 // Login token: fixed 7-day expiry and explicit claims required by the app.
 // Includes `sub` for compatibility with auth middleware.
-export function signLoginToken({ userId, facebookId, username }) {
+export function signLoginToken({ userId, facebookId, username, role }) {
   return jwt.sign(
     {
       sub: String(userId),
       userId: String(userId),
       facebookId: String(facebookId),
-      username: String(username)
+      username: String(username),
+      role: String(role)
     },
     env.JWT_SECRET,
     {

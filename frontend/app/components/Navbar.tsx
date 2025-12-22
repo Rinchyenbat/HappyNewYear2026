@@ -3,28 +3,34 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { getUsername, logout } from '../lib/auth';
+import { getUserRole, getUsername, logout } from '../lib/auth';
 import { useEffect, useState } from 'react';
 
 export default function Navbar() {
   const pathname = usePathname();
   const [username, setUsername] = useState<string | null>(null);
+  const [role, setRole] = useState<string | null>(null);
 
   useEffect(() => {
     setUsername(getUsername());
+    setRole(getUserRole());
   }, []);
 
-  const navItems = [
-    { href: '/inbox', label: 'Inbox' },
-    { href: '/sent', label: 'Sent' },
-    { href: '/write', label: 'Write Letter' },
-  ];
+  const isAdmin = role === 'admin';
+  const navItems = isAdmin
+    ? [{ href: '/admin', label: 'Admin' }]
+    : [
+        { href: '/inbox', label: 'Inbox' },
+        { href: '/sent', label: 'Sent' },
+        { href: '/write', label: 'Write Letter' }
+      ];
+  const brandHref = isAdmin ? '/admin' : '/inbox';
 
   return (
     <nav className="glass-effect sticky top-0 z-50 border-b border-white/10">
       <div className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
-          <Link href="/inbox" className="flex items-center space-x-2">
+          <Link href={brandHref} className="flex items-center space-x-2">
             <span className="text-2xl">✉️</span>
             <span className="text-xl font-serif font-bold bg-gradient-to-r from-gold to-gold-light bg-clip-text text-transparent">
               New Year Letters

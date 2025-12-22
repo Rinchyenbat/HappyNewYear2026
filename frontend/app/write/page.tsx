@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import SnowEffect from '../components/SnowEffect';
 import api from '../lib/api';
-import { isAuthenticated } from '../lib/auth';
+import { getUserRole, isAuthenticated } from '../lib/auth';
 import { SendLetterRequest } from '../types/letter';
 
 interface User {
@@ -31,6 +31,11 @@ export default function WritePage() {
   useEffect(() => {
     if (!isAuthenticated()) {
       router.push('/login');
+      return;
+    }
+
+    if (getUserRole() === 'admin') {
+      router.push('/admin');
       return;
     }
 

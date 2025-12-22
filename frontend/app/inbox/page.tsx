@@ -7,7 +7,7 @@ import Navbar from '../components/Navbar';
 import LetterCard from '../components/LetterCard';
 import SnowEffect from '../components/SnowEffect';
 import api from '../lib/api';
-import { isAuthenticated } from '../lib/auth';
+import { getUserRole, isAuthenticated } from '../lib/auth';
 import { LettersResponse } from '../types/letter';
 
 export default function InboxPage() {
@@ -20,6 +20,11 @@ export default function InboxPage() {
   useEffect(() => {
     if (!isAuthenticated()) {
       router.push('/login');
+      return;
+    }
+
+    if (getUserRole() === 'admin') {
+      router.push('/admin');
       return;
     }
 

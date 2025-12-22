@@ -7,7 +7,7 @@ import Navbar from '../../components/Navbar';
 import LetterPaper from '../../components/LetterPaper';
 import SnowEffect from '../../components/SnowEffect';
 import api from '../../lib/api';
-import { getUsername, isAuthenticated } from '../../lib/auth';
+import { getUserRole, getUsername, isAuthenticated } from '../../lib/auth';
 import { Letter, LetterResponse } from '../../types/letter';
 
 export default function LetterDetailPage() {
@@ -22,6 +22,11 @@ export default function LetterDetailPage() {
   useEffect(() => {
     if (!isAuthenticated()) {
       router.push('/login');
+      return;
+    }
+
+    if (getUserRole() === 'admin') {
+      router.push('/admin');
       return;
     }
 

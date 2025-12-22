@@ -3,6 +3,8 @@ export interface LoginResponse {
   username: string;
 }
 
+export type UserRole = 'admin' | 'user';
+
 const canUseBrowserStorage = () =>
   typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
 
@@ -48,6 +50,36 @@ export const getUsername = (): string | null => {
   } catch {
     return null;
   }
+};
+
+function decodeJwtPayload(token: string): any | null {
+  // JWT format: header.payload.signature (base64url)
+  const parts = token.split('.');
+  if (parts.length !== 3) return null;
+
+  const payload = parts[1];
+  try {
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
+    const json = atob(padded);
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+}
+
+export const getUserRole = (): UserRole | null => {
+  const token = getAuthToken();
+  if (!token) return null;
+
+  const payload = decodeJwtPayload(token);
+  const role = payload?.role;
+  if (role === 'admin' || role === 'user') return role;
+
+  // Backward compatibility for older tokens that didn't include role.
+  const username = payload?.username ?? getUsername();
+  if (username === 'admin') return 'admin';
+  return null;
 };
 
 export const isAuthenticated = (): boolean => {
