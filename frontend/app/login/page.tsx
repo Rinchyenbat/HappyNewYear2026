@@ -6,9 +6,9 @@ import { motion } from 'framer-motion';
 import { setAuthToken } from '../lib/auth';
 import SnowEffect from '../components/SnowEffect';
 
-const INSTAGRAM_APP_ID = process.env.NEXT_PUBLIC_INSTAGRAM_APP_ID || '';
+const FACEBOOK_APP_ID = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || '';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-const DEV_INSTAGRAM_ID = process.env.NEXT_PUBLIC_DEV_INSTAGRAM_ID || '';
+const DEV_FACEBOOK_ID = process.env.NEXT_PUBLIC_DEV_FACEBOOK_ID || '';
 
 function OAuthCallbackHandler({
   onError,
@@ -44,30 +44,30 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleInstagramLogin = () => {
+  const handleFacebookLogin = () => {
     setError('');
     setLoading(true);
 
-    // Check if we're in DEV mode (no Instagram App ID configured)
-    const isDev = !INSTAGRAM_APP_ID;
+    // Check if we're in DEV mode (no Facebook App ID configured)
+    const isDev = !FACEBOOK_APP_ID;
     
     if (isDev) {
       // Development mode with DEV_AUTH_BYPASS
       // Backend will handle dev login and redirect back to frontend with token
-      const instagramId = DEV_INSTAGRAM_ID.trim();
+      const facebookId = DEV_FACEBOOK_ID.trim();
 
-      if (!instagramId) {
+      if (!facebookId) {
         setError(
-          'Development login is not configured. Set NEXT_PUBLIC_DEV_INSTAGRAM_ID to a whitelisted numeric instagram_id (or configure real Instagram OAuth).'
+          'Development login is not configured. Set NEXT_PUBLIC_DEV_FACEBOOK_ID to a Facebook user id (or configure real Facebook OAuth).'
         );
         setLoading(false);
         return;
       }
 
-      window.location.href = `${API_URL}/auth/instagram/callback?instagram_id=${encodeURIComponent(instagramId)}`;
+      window.location.href = `${API_URL}/auth/facebook/callback?facebook_id=${encodeURIComponent(facebookId)}`;
     } else {
-      // Production: Redirect to backend /auth/instagram which initiates Instagram OAuth
-      window.location.href = `${API_URL}/auth/instagram`;
+      // Production: Redirect to backend /auth/facebook which initiates Facebook OAuth
+      window.location.href = `${API_URL}/auth/facebook`;
     }
   };
 
@@ -120,22 +120,22 @@ export default function LoginPage() {
             )}
 
             <button
-              onClick={handleInstagramLogin}
+              onClick={handleFacebookLogin}
               disabled={loading}
               className="w-full py-4 rounded-lg bg-gradient-to-r from-[#833AB4] via-[#E1306C] to-[#F56040] text-white font-semibold hover:shadow-xl hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-3"
             >
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M22 12.061C22 6.504 17.523 2 12 2S2 6.504 2 12.061C2 17.082 5.657 21.245 10.438 22v-7.03H7.898v-2.909h2.54V9.845c0-2.522 1.492-3.915 3.777-3.915 1.094 0 2.238.197 2.238.197v2.476H15.19c-1.246 0-1.634.776-1.634 1.572v1.886h2.78l-.444 2.909h-2.336V22C18.343 21.245 22 17.082 22 12.061z"/>
               </svg>
-              {loading ? 'Connecting to Instagram...' : 'Login with Instagram'}
+              {loading ? 'Connecting to Facebook...' : 'Login with Facebook'}
             </button>
 
             <div className="mt-6 text-center text-xs text-snow-dark space-y-2">
-              <p>✨ Only pre-approved Instagram accounts can access ✨</p>
+              <p>✨ After login, your account may require admin approval ✨</p>
               <p className="text-snow-dark/70">
-                {!INSTAGRAM_APP_ID 
+                {!FACEBOOK_APP_ID 
                   ? 'Development mode: Using test authentication'
-                  : "You'll be redirected to Instagram to authenticate"}
+                  : "You'll be redirected to Facebook to authenticate"}
               </p>
             </div>
           </div>

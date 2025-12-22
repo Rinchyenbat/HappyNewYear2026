@@ -14,50 +14,50 @@ function requireEnv(name) {
 const MONGODB_URI = requireEnv('MONGODB_URI');
 
 const USERS_TO_ENSURE = [
-  { instagramId: '61740588898', username: 'Ninjbadgar' },
-  { instagramId: '6996374317', username: 'Usukhbayar' }
+  { facebookId: '61740588898', username: 'Ninjbadgar' },
+  { facebookId: '6996374317', username: 'Usukhbayar' }
 ];
 
 function isDuplicateKeyError(err) {
   return err?.code === 11000;
 }
 
-async function ensureUser({ instagramId, username }) {
+async function ensureUser({ facebookId, username }) {
   // 1) Do not modify existing users.
-  const existingByInstagramId = await User.findOne({ instagramId }).select({ _id: 1, username: 1 }).lean();
-  if (existingByInstagramId) {
+  const existingByFacebookId = await User.findOne({ facebookId }).select({ _id: 1, username: 1 }).lean();
+  if (existingByFacebookId) {
     return {
-      instagramId,
+      facebookId,
       status: 'already-exists',
-      id: String(existingByInstagramId._id),
-      username: existingByInstagramId.username
+      id: String(existingByFacebookId._id),
+      username: existingByFacebookId.username
     };
   }
 
   // 2) Ensure we don't accidentally create a user with a username already used.
-  const existingByUsername = await User.findOne({ username }).select({ _id: 1, instagramId: 1 }).lean();
+  const existingByUsername = await User.findOne({ username }).select({ _id: 1, facebookId: 1 }).lean();
   if (existingByUsername) {
     return {
-      instagramId,
+      facebookId,
       status: 'username-conflict',
-      message: `Username '${username}' is already used by instagramId=${existingByUsername.instagramId}`
+      message: `Username '${username}' is already used by facebookId=${existingByUsername.facebookId}`
     };
   }
 
   // 3) Create user (race-safe with duplicate key handling).
   try {
-    const created = await User.create({ instagramId, username, role: 'user' });
-    return { instagramId, status: 'created', id: String(created._id), username: created.username };
+    const created = await User.create({ facebookId, username, role: 'user' });
+    return { facebookId, status: 'created', id: String(created._id), username: created.username };
   } catch (err) {
     if (isDuplicateKeyError(err)) {
       // Another process created it between our checks.
-      const nowExists = await User.findOne({ instagramId })
+      const nowExists = await User.findOne({ facebookId })
         .select({ _id: 1, username: 1 })
         .lean();
 
       if (nowExists) {
         return {
-          instagramId,
+          facebookId,
           status: 'already-exists',
           id: String(nowExists._id),
           username: nowExists.username
@@ -65,7 +65,7 @@ async function ensureUser({ instagramId, username }) {
       }
 
       return {
-        instagramId,
+        facebookId,
         status: 'duplicate-key',
         message: 'Duplicate key error; user not created'
       };

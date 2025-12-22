@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const loginLogSchema = new mongoose.Schema(
   {
-    instagramId: { type: String, required: true, trim: true, index: true },
+    facebookId: { type: String, required: true, trim: true, index: true },
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     success: { type: Boolean, required: true },
     reason: { type: String, trim: true },

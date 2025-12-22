@@ -3,13 +3,13 @@ import { query } from 'express-validator';
 
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { handleValidation } from '../validators/common.js';
-import { instagramOAuthLogin, instagramOAuthInitiate } from '../controllers/auth.controller.js';
+import { facebookOAuthLogin, facebookOAuthInitiate } from '../controllers/auth.controller.js';
 
 export const authRouter = Router();
 
 // ONLY route:
-// - DEV mode (DEV_AUTH_BYPASS === "true"): accept `instagram_id` and skip validation.
-// - PROD mode: require `code` and exchange it with Instagram.
+// - DEV mode (DEV_AUTH_BYPASS === "true"): accept `facebook_id` and skip validation.
+// - PROD mode: require `code` and exchange it with Facebook.
 const isDevBypass = process.env.DEV_AUTH_BYPASS === 'true';
 
 const callbackValidators = isDevBypass
@@ -26,9 +26,9 @@ const callbackValidators = isDevBypass
       handleValidation
     ];
 
-// GET /auth/instagram - Initiates Instagram OAuth flow (redirects to Instagram)
-authRouter.get('/instagram', asyncHandler(instagramOAuthInitiate));
+// GET /auth/facebook - Initiates Facebook OAuth flow (redirects to Facebook)
+authRouter.get('/facebook', asyncHandler(facebookOAuthInitiate));
 
-// GET /auth/instagram/callback - Handles Instagram OAuth callback and redirects to frontend
-authRouter.get('/instagram/callback', callbackValidators, asyncHandler(instagramOAuthLogin));
+// GET /auth/facebook/callback - Handles Facebook OAuth callback and redirects to frontend
+authRouter.get('/facebook/callback', callbackValidators, asyncHandler(facebookOAuthLogin));
 

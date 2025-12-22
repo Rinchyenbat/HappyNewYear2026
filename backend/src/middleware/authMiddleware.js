@@ -29,7 +29,7 @@ export async function requireAuth(req, res, next) {
     id: String(user._id),
     role: user.role,
     username: user.username,
-    instagramId: user.instagramId
+    facebookId: user.facebookId
   };
 
   return next();

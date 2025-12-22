@@ -1,13 +1,13 @@
 # Happy New Year 2026 - Letter Writing Application
 
-A premium, emotional letter-writing web application with Instagram OAuth authentication.
+A premium, emotional letter-writing web application with Facebook OAuth authentication.
 
 ## 🎯 Quick Start
 
 ### Prerequisites
 - Node.js 18+ installed
 - MongoDB running locally or remote connection string
-- Instagram App credentials (or use DEV_AUTH_BYPASS mode)
+- Facebook App credentials (or use DEV_AUTH_BYPASS mode)
 
 ### 1. Backend Setup
 
@@ -23,9 +23,6 @@ cp .env.example .env
 # Edit .env with your credentials
 # For development, you can use DEV_AUTH_BYPASS=true
 nano .env
-
-# Seed the database with allowed users
-npm run seed:allowedUsers
 
 # Start the backend server
 npm start
@@ -62,7 +59,7 @@ This repository is a monorepo:
 
 Set env var on Vercel:
 - `NEXT_PUBLIC_API_URL` = your backend public URL (example: `https://hn2026-api.onrender.com`)
-- `NEXT_PUBLIC_INSTAGRAM_APP_ID` = your Instagram App ID / Client ID (enables real OAuth flow)
+- `NEXT_PUBLIC_FACEBOOK_APP_ID` = your Facebook App ID / Client ID (enables real OAuth flow)
 
 ### Backend → Render/Railway
 Create a Node web service from this repo and set:
@@ -76,41 +73,37 @@ Required env vars for backend:
 - `FRONTEND_URL` = your frontend public URL (example: `https://your-app.vercel.app`)
 - `CORS_ORIGIN` = your Vercel domain(s), comma-separated
    - example: `https://your-app.vercel.app,https://your-custom-domain.com`
-- `DEV_AUTH_BYPASS=false` (IMPORTANT: enable real Instagram OAuth in production)
+- `DEV_AUTH_BYPASS=false` (IMPORTANT: enable real Facebook OAuth in production)
 
-If using real Instagram OAuth in production (not DEV bypass), also set:
-- `INSTAGRAM_CLIENT_ID`
-- `INSTAGRAM_CLIENT_SECRET`
-- `INSTAGRAM_REDIRECT_URI` = `https://<backend-domain>/auth/instagram/callback` (must exactly match your Instagram App settings)
+If using real Facebook OAuth in production (not DEV bypass), also set:
+- `FACEBOOK_CLIENT_ID`
+- `FACEBOOK_CLIENT_SECRET`
+- `FACEBOOK_REDIRECT_URI` = `https://<backend-domain>/auth/facebook/callback` (must exactly match your Facebook App settings)
 
 ## 🔑 Authentication Flow
 
 ### Development Mode (DEV_AUTH_BYPASS=true)
-- Click "Login with Instagram" button
-- Frontend sends a numeric `instagram_id` to simulate a whitelisted user (development bypass)
-- No actual Instagram OAuth required
+- Click "Login with Facebook" button
+- Frontend sends a `facebook_id` to simulate a pre-approved user (development bypass)
+- No actual Facebook OAuth required
 - Perfect for local development
 
 ### Production Mode (DEV_AUTH_BYPASS=false)
-- Click "Login with Instagram" button
-- Redirects to Instagram OAuth authorization
-- Instagram redirects back to backend with code
-- Backend validates against whitelist
-- Backend assigns predefined username
-- Redirects to frontend with JWT token
+- Click "Login with Facebook" button
+- Redirects to Facebook OAuth authorization
+- Facebook redirects back to backend with code
+- If approved, backend issues JWT and redirects to frontend
+- If not approved, backend records a pending login and redirects to frontend with a "Pending approval" message
 
-**Whitelisted Test Users:**
-- Instagram ID: `61740588898` → Username: Ninjbadgar
-- Instagram ID: `6996374317` → Username: Usukhbayar
-- And more users (see [backend/src/seed/allowedInstagramUsers.seed.js](backend/src/seed/allowedInstagramUsers.seed.js))
+Note: first-time logins will show a "Pending approval" message until an admin approves and assigns a username.
 
 ## 📱 Application Flow
 
 1. **Login** (`http://localhost:3000/login`)
-   - Click "Login with Instagram" button
-   - Instagram OAuth flow (or dev bypass)
-   - Backend checks whitelist
-   - Backend assigns system username
+   - Click "Login with Facebook" button
+   - Facebook OAuth flow (or dev bypass)
+   - If approved, backend issues a token
+   - If not approved, you'll see "Pending approval" until an admin approves and assigns a username
    - Receives JWT token + username
    - Redirected to inbox
 
@@ -141,9 +134,9 @@ If using real Instagram OAuth in production (not DEV bypass), also set:
 ### Backend
 - ✅ Express.js + MongoDB + Mongoose
 - ✅ JWT Authentication (7-day expiry)
-- ✅ Instagram OAuth (Meta Graph API)
+- ✅ Facebook OAuth (Meta Graph API)
 - ✅ DEV_AUTH_BYPASS for development
-- ✅ Whitelist system (22 predefined users)
+- ✅ Pending approval flow (admin assigns usernames)
 - ✅ Anonymous letter support
 - ✅ Letter CRUD operations
 - ✅ Input validation with express-validator
@@ -168,7 +161,7 @@ backend/
 │   ├── models/          # MongoDB schemas
 │   │   ├── User.js
 │   │   ├── Letter.js
-│   │   ├── AllowedInstagramUser.js
+│   │   ├── PendingFacebookLogin.js
 │   │   └── ...
 │   ├── controllers/     # Request handlers
 │   │   ├── auth.controller.js
@@ -205,7 +198,8 @@ frontend/
 ## 🔌 API Endpoints
 
 ### Authentication
-- `GET /auth/instagram/callback` - Instagram OAuth callback (or DEV login)
+- `GET /auth/facebook` - Initiate Facebook OAuth
+- `GET /auth/facebook/callback` - Facebook OAuth callback (or DEV login)
 
 ### Letters
 - `POST /letters` - Send a new letter
@@ -252,7 +246,7 @@ frontend/
 cd backend
 
 # Test with DEV_AUTH_BYPASS
-curl http://localhost:4000/auth/instagram/callback?instagram_id=61740588898
+curl http://localhost:4000/auth/facebook/callback?facebook_id=61740588898
 
 # Test protected endpoint
 curl http://localhost:4000/users/profile \
@@ -261,7 +255,7 @@ curl http://localhost:4000/users/profile \
 
 ### Frontend Testing
 1. Visit `http://localhost:3000`
-2. Login with Instagram (dev bypass uses a whitelisted numeric instagram_id)
+2. Login with Facebook (dev bypass uses a pre-approved facebook_id)
 3. Navigate through pages
 4. Write and send a letter
 5. Check inbox for received letters
@@ -270,7 +264,7 @@ curl http://localhost:4000/users/profile \
 
 ### Backend
 1. Set up MongoDB Atlas or production database
-2. Configure Instagram OAuth credentials
+2. Configure Facebook OAuth credentials
 3. Set `DEV_AUTH_BYPASS=false`
 4. Deploy to your hosting service (Heroku, Railway, etc.)
 5. Update environment variables
@@ -293,21 +287,21 @@ JWT_EXPIRES_IN=7d
 FRONTEND_URL=http://localhost:3000
 CORS_ORIGIN=http://localhost:3000
 
-# Development bypass (skip real Instagram OAuth and accept ?instagram_id=...)
+# Development bypass (skip real Facebook OAuth and accept ?facebook_id=...)
 DEV_AUTH_BYPASS=true
 
 # Optional for production
-INSTAGRAM_CLIENT_ID=your-instagram-app-id
-INSTAGRAM_CLIENT_SECRET=your-instagram-app-secret
-INSTAGRAM_REDIRECT_URI=http://localhost:4000/auth/instagram/callback
+FACEBOOK_CLIENT_ID=your-facebook-app-id
+FACEBOOK_CLIENT_SECRET=your-facebook-app-secret
+FACEBOOK_REDIRECT_URI=http://localhost:4000/auth/facebook/callback
 ```
 
 ### Frontend `.env.local`
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:4000
 
-# Optional (development only): choose which whitelisted user you simulate in DEV_AUTH_BYPASS mode
-# NEXT_PUBLIC_DEV_INSTAGRAM_ID=6996374317
+# Optional (development only): choose which Facebook user id you simulate in DEV_AUTH_BYPASS mode
+# NEXT_PUBLIC_DEV_FACEBOOK_ID=
 ```
 
 ## 🎭 Anonymous Letter System
@@ -321,8 +315,8 @@ When sending an anonymous letter:
 ## 🛡️ Security Features
 
 - JWT-based authentication with 7-day expiry
-- Password-less authentication via Instagram
-- Whitelist system (only 22 approved users)
+- Password-less authentication via Facebook
+- Admin approval required for first-time logins
 - Rate limiting on all routes
 - CORS configured for frontend domain
 - Helmet for security headers

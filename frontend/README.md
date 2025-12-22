@@ -12,30 +12,23 @@ A premium, emotional letter-writing web application built with Next.js 14, TypeS
 
 ## Tech Stack
 
-- **Framework**: Next.js 14 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Animations**: Framer Motion
-- **HTTP Client**: Axios
-- **Authentication**: JWT (localStorage)
+- Framework: Next.js 14 (App Router)
+- Language: TypeScript
+- Styling: Tailwind CSS
+- Animations: Framer Motion
+- HTTP Client: Axios
+- Auth: JWT stored in localStorage
 
-## Getting Started
+## Prerequisites
 
-### Prerequisites
+- Node.js 18+
+- Backend API running (default: `http://localhost:4000`)
 
-- Node.js 18+ installed
-- Backend API running on `http://localhost:4000`
-
-### Installation
+## Installation
 
 ```bash
-# Install dependencies
 npm install
-
-# Create environment file
 cp .env.local.example .env.local
-
-# Start development server
 npm run dev
 ```
 
@@ -65,23 +58,22 @@ app/
 
 ## Authentication
 
-This app uses **Instagram OAuth** for authentication (not manual Instagram ID input).
+This app uses **Facebook OAuth** for authentication.
 
 ### Login Flow
 
-1. User clicks "Login with Instagram" button
-2. **Development Mode** (`NEXT_PUBLIC_INSTAGRAM_APP_ID` not set):
-   - Redirects to `${API_URL}/auth/instagram/callback?instagram_id=...`
-   - Uses `NEXT_PUBLIC_DEV_INSTAGRAM_ID` to simulate one whitelisted user
-   - Backend uses DEV_AUTH_BYPASS to authenticate the selected test user
-   - Backend redirects to `/login?token=...&username=...`
-   
-3. **Production Mode** (`NEXT_PUBLIC_INSTAGRAM_APP_ID` set):
-   - Redirects to `${API_URL}/auth/instagram`
-   - Backend redirects to Instagram OAuth
-   - Instagram redirects to `${API_URL}/auth/instagram/callback?code=...`
-   - Backend validates code, checks whitelist, assigns username
-   - Backend redirects to `/login?token=...&username=...`
+1. User clicks "Login with Facebook" button
+2. **Development Mode** (`NEXT_PUBLIC_FACEBOOK_APP_ID` not set):
+   - Redirects to `${API_URL}/auth/facebook/callback?facebook_id=...`
+   - Uses `NEXT_PUBLIC_DEV_FACEBOOK_ID` to simulate a Facebook user id
+   - If not yet approved, the backend records a pending login and redirects back with an error
+
+3. **Production Mode** (`NEXT_PUBLIC_FACEBOOK_APP_ID` set):
+   - Redirects to `${API_URL}/auth/facebook`
+   - Backend redirects to Facebook OAuth
+   - Facebook redirects to `${API_URL}/auth/facebook/callback?code=...`
+   - If approved, backend redirects to `/login?token=...&username=...`
+   - If not approved, backend redirects to `/login?error=Pending%20approval...`
 
 4. Frontend receives token & username in URL params
 5. Stores in localStorage
@@ -89,16 +81,16 @@ This app uses **Instagram OAuth** for authentication (not manual Instagram ID in
 
 ### Important Notes
 
-- Users **never** manually type Instagram ID or username
-- Username is **system-assigned** from whitelist (read-only)
+- Users don't manually type any IDs
+- Username is assigned by an admin during approval
 - Frontend displays assigned username from `localStorage.getItem('username')`
-- Only whitelisted Instagram accounts can access the app
+- First-time logins may require admin approval
 
 ## Features
 
 ### Pages
 
-1. **Login** - Instagram OAuth button (no manual input)
+1. **Login** - Facebook OAuth button
 2. **Inbox** - View received letters
 3. **Sent** - View sent letters
 4. **Write Letter** - Compose new letters
@@ -148,8 +140,8 @@ npm start
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:4000
 
-# Optional (development only): pick which whitelisted user you simulate in DEV_AUTH_BYPASS mode
-# NEXT_PUBLIC_DEV_INSTAGRAM_ID=6996374317
+# Optional (development only): pick which facebook id you simulate in DEV_AUTH_BYPASS mode
+# NEXT_PUBLIC_DEV_FACEBOOK_ID=
 ```
 
 ## License

@@ -49,7 +49,12 @@ export const env = Object.freeze({
   CORS_ORIGIN: process.env.CORS_ORIGIN ?? '',
   // These are required for the OAuth login route, but kept optional here
   // so scripts (e.g. seed) can run with only DB/JWT configured.
-  INSTAGRAM_CLIENT_ID: process.env.INSTAGRAM_CLIENT_ID ?? '',
-  INSTAGRAM_CLIENT_SECRET: process.env.INSTAGRAM_CLIENT_SECRET ?? '',
-  INSTAGRAM_REDIRECT_URI: process.env.INSTAGRAM_REDIRECT_URI ?? ''
+  FACEBOOK_CLIENT_ID: process.env.FACEBOOK_CLIENT_ID ?? '',
+  FACEBOOK_CLIENT_SECRET: process.env.FACEBOOK_CLIENT_SECRET ?? '',
+  FACEBOOK_REDIRECT_URI: process.env.FACEBOOK_REDIRECT_URI ?? '',
+
+  // Optional: bootstrap the first admin.
+  // If set, a login with this facebookId will create an admin user (once) if not present.
+  ADMIN_FACEBOOK_ID: process.env.ADMIN_FACEBOOK_ID ?? '',
+  ADMIN_USERNAME: process.env.ADMIN_USERNAME ?? ''
 });

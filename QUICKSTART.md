@@ -17,14 +17,7 @@ mkdir -p ~/.mongodb/data
 mongod --dbpath ~/.mongodb/data --logpath ~/.mongodb/mongod.log --fork
 ```
 
-## Step 2: Seed the Database
-
-```bash
-cd backend
-MONGODB_URI=mongodb://127.0.0.1:27017/hn2026 node src/seed/allowedInstagramUsers.seed.js
-```
-
-## Step 3: Start Backend
+## Step 2: Start Backend
 
 ```bash
 cd backend
@@ -43,7 +36,7 @@ node src/server.js
 API listening on port 4000
 ```
 
-## Step 4: Start Frontend
+## Step 3: Start Frontend
 
 ```bash
 # In a new terminal
@@ -58,11 +51,11 @@ npm run dev
 ✓ Ready in 3.7s
 ```
 
-## Step 5: Login & Test
+## Step 4: Login & Test
 
 1. Open browser: http://localhost:3000
-2. Click **"Login with Instagram"** button
-3. If using development bypass, set `NEXT_PUBLIC_DEV_INSTAGRAM_ID` to a whitelisted numeric Instagram ID
+2. Click **"Login with Facebook"** button
+3. If using development bypass, set `NEXT_PUBLIC_DEV_FACEBOOK_ID` (any value is fine for creating a pending request)
 4. You'll be redirected to `/inbox`
 
 ## Test the Features
@@ -92,16 +85,9 @@ pkill mongod
 
 ## Login as Different Users
 
-Edit the login redirect in `frontend/app/login/page.tsx`:
+Set `NEXT_PUBLIC_DEV_FACEBOOK_ID` in `frontend/.env.local`.
 
-```typescript
-// Set NEXT_PUBLIC_DEV_INSTAGRAM_ID in frontend/.env.local instead of hardcoding
-```
-
-Available test users:
-- `61740588898` → username: `Ninjbadgar`
-- `6996374317` → username: `Usukhbayar`
-- See all whitelisted IDs in `backend/src/seed/allowedInstagramUsers.seed.js`
+Note: with the new approval flow, first-time logins will show "Pending approval" until an admin approves and assigns a username.
 
 ## Troubleshooting
 
@@ -130,8 +116,8 @@ mongod --dbpath ~/.mongodb/data --port 27018
 
 ### Login redirects but no token
 - **Check DEV_AUTH_BYPASS**: Must be `true` for development
-- **Check Instagram ID**: Must be in whitelist (see seed script)
-- **Check backend logs**: Look for "not_whitelisted" or other errors
+- **Check approval**: First-time logins will be pending until an admin approves and assigns a username
+- **Check backend logs**: Look for "pending_approval" or other errors
 
 ## Environment Variables Cheat Sheet
 
@@ -156,7 +142,7 @@ NEXT_PUBLIC_API_URL=http://localhost:4000  # Already in .env.local
 - [ ] Backend API listening on port 4000
 - [ ] Frontend dev server running on port 3000
 - [ ] Login button visible on http://localhost:3000
-- [ ] Can click "Login with Instagram" without errors
+- [ ] Can click "Login with Facebook" without errors
 - [ ] Automatically redirected to /inbox after login
 - [ ] Username "rinchyen" appears in navbar
 - [ ] Can navigate to "Write Letter" page
@@ -176,10 +162,7 @@ Once everything works:
 
 ## Production Setup
 
-For production deployment, see [OAUTH_IMPLEMENTATION.md](OAUTH_IMPLEMENTATION.md) for:
-- Real Instagram OAuth setup
-- Environment variable configuration
-- Deployment checklist
+For production deployment, follow the Facebook OAuth section in [README.md](README.md).
 
 ---
 

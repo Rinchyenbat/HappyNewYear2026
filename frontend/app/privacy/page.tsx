@@ -19,7 +19,7 @@ export default function PrivacyPolicyPage() {
             <div>
               <h2 className="text-xl font-serif font-semibold text-snow mb-2">Information we collect</h2>
               <ul className="list-disc pl-5 space-y-1">
-                <li>Account identifiers from Instagram during login (e.g., Instagram user ID).</li>
+                <li>Account identifiers from Facebook during login (e.g., Facebook user ID).</li>
                 <li>App data you create (letters and messages).</li>
                 <li>Basic security logs (e.g., login time, IP address, user agent) for abuse prevention.</li>
               </ul>
@@ -28,7 +28,7 @@ export default function PrivacyPolicyPage() {
             <div>
               <h2 className="text-xl font-serif font-semibold text-snow mb-2">How we use information</h2>
               <ul className="list-disc pl-5 space-y-1">
-                <li>To authenticate you and enforce the pre-approved whitelist.</li>
+                <li>To authenticate you and run the admin approval workflow.</li>
                 <li>To deliver core features (sending/receiving letters).</li>
                 <li>To prevent abuse and maintain service security.</li>
               </ul>

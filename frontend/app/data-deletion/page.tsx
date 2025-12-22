@@ -19,7 +19,7 @@ export default function DataDeletionPage() {
               <h2 className="text-xl font-serif font-semibold text-snow mb-2">How to request deletion</h2>
               <ol className="list-decimal pl-5 space-y-1">
                 <li>Send a deletion request to the app owner.</li>
-                <li>Include your assigned username (shown in the app) or your Instagram ID.</li>
+                <li>Include your assigned username (shown in the app) or your Facebook user ID.</li>
                 <li>We will confirm the request and delete associated data from our database.</li>
               </ol>
             </div>

@@ -1,4 +1,7 @@
-# Instagram OAuth Implementation Summary
+# OAuth Implementation Summary (Outdated)
+
+NOTE: This document describes the previous Instagram OAuth implementation.
+The project has been migrated to Facebook login (`/auth/facebook`) and this doc is kept only for historical context.
 
 ## What Changed
 

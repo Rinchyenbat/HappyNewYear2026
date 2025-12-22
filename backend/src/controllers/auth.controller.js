@@ -1,40 +1,42 @@
 import createError from 'http-errors';
 
-import { AllowedInstagramUser } from '../models/AllowedInstagramUser.js';
 import { User } from '../models/User.js';
 import { LoginLog } from '../models/LoginLog.js';
+import { PendingFacebookLogin } from '../models/PendingFacebookLogin.js';
 import { signLoginToken } from '../utils/jwt.js';
-import { getAccessToken, getInstagramProfile } from '../utils/instagramOAuth.js';
+import { buildFacebookAuthorizeUrl, getFacebookAccessToken, getFacebookProfile } from '../utils/facebookOAuth.js';
+import { env } from '../config/env.js';
 
-export async function instagramOAuthLogin(req, res) {
+export async function facebookOAuthLogin(req, res) {
   const isDevBypass = process.env.DEV_AUTH_BYPASS === 'true';
 
-  let instagramId;
+  let facebookId;
+  let facebookName;
 
   // OAuth Step A:
-  // PROD: Instagram redirects back with `?code=...`; backend exchanges code -> token -> profile.
-  // DEV BYPASS: skip Instagram calls and accept `instagram_id` from query.
+  // PROD: Facebook redirects back with `?code=...`; backend exchanges code -> token -> profile.
+  // DEV BYPASS: skip Facebook calls and accept `facebook_id` from query.
   if (isDevBypass) {
-    instagramId = String(req.query?.instagram_id ?? '').trim();
-    if (!instagramId) {
-      throw createError(400, 'instagram_id is required in dev bypass mode');
+    facebookId = String(req.query?.facebook_id ?? '').trim();
+    if (!facebookId) {
+      throw createError(400, 'facebook_id is required in dev bypass mode');
     }
   } else {
     const code = String(req.query?.code ?? '').trim();
 
     let accessToken;
-    let instagramProfile;
+    let facebookProfile;
 
     try {
       // OAuth Step B: Exchange `code` for an access token.
-      accessToken = await getAccessToken(code);
+      accessToken = await getFacebookAccessToken(code);
 
-      // OAuth Step C: Fetch Instagram profile via Graph API.
-      instagramProfile = await getInstagramProfile(accessToken);
+      // OAuth Step C: Fetch Facebook profile via Graph API.
+      facebookProfile = await getFacebookProfile(accessToken);
     } catch (err) {
-      // We don't have a reliable instagramId yet; store the failure with minimal info.
+      // We don't have a reliable facebookId yet; store the failure with minimal info.
       await LoginLog.create({
-        instagramId: 'unknown',
+        facebookId: 'unknown',
         success: false,
         reason: 'oauth_failed',
         ip: req.ip,
@@ -43,42 +45,61 @@ export async function instagramOAuthLogin(req, res) {
       throw err;
     }
 
-    // OAuth Step D: Extract Instagram user id. This is what we whitelist.
-    instagramId = instagramProfile.id;
+    // OAuth Step D: Extract Facebook user identity.
+    facebookId = facebookProfile.id;
+    facebookName = facebookProfile.name;
   }
 
-  // Security Step E: Enforce developer-controlled whitelist + exact username assignment.
-  // Users cannot pick or change usernames; the backend assigns the predefined name.
-  const allowed = await AllowedInstagramUser.findOne({ instagram_id: instagramId }).lean();
-  if (!allowed) {
+
+  // Step E: If the user already exists (approved), issue a login token.
+  let user = await User.findOne({ facebookId });
+
+  // Optional: bootstrap admin on first login.
+  if (!user && env.ADMIN_FACEBOOK_ID && facebookId === String(env.ADMIN_FACEBOOK_ID).trim()) {
+    const desiredUsername = (env.ADMIN_USERNAME || 'admin').trim();
+    const usernameTaken = await User.exists({ username: desiredUsername });
+    if (usernameTaken) {
+      throw createError(409, 'Admin username is already in use');
+    }
+    user = await User.create({ facebookId, username: desiredUsername, role: 'admin' });
+  }
+
+  if (!user) {
+    // Step F: Record/refresh a pending approval request (admin will assign username later).
+    const now = new Date();
+    await PendingFacebookLogin.updateOne(
+      { facebookId },
+      {
+        $setOnInsert: { facebookId, firstSeenAt: now },
+        $set: {
+          facebookName: facebookName ? String(facebookName) : undefined,
+          status: 'pending',
+          lastSeenAt: now,
+          lastIp: req.ip,
+          lastUserAgent: req.get('user-agent')
+        },
+        $inc: { seenCount: 1 }
+      },
+      { upsert: true }
+    );
+
     await LoginLog.create({
-      instagramId,
+      facebookId,
       success: false,
-      reason: 'not_whitelisted',
+      reason: 'pending_approval',
       ip: req.ip,
       userAgent: req.get('user-agent')
     });
-    // Exact message required by spec.
-    throw createError(403, 'You are not allowed to access this app');
-  }
 
-  // Step F: Create the user if they don't exist using the assigned username.
-  const assignedUsername = String(allowed.assigned_username).trim();
-  let user = await User.findOne({ instagramId });
-  if (!user) {
-    const usernameTaken = await User.exists({ username: assignedUsername });
-    if (usernameTaken) {
-      throw createError(409, 'Assigned username is already in use');
-    }
-    user = await User.create({ instagramId, username: assignedUsername, role: 'user' });
-  } else if (user.username !== assignedUsername) {
-    // Do not modify existing users.
-    throw createError(403, 'You are not allowed to access this app');
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const msg = 'Pending approval. Please contact the admin.';
+    res.redirect(`${frontendUrl}/login?error=${encodeURIComponent(msg)}`);
+    return;
   }
 
   // Step G: Record successful login for auditing/moderation.
   await LoginLog.create({
-    instagramId,
+    facebookId,
     user: user._id,
     success: true,
     reason: 'ok',
@@ -89,7 +110,7 @@ export async function instagramOAuthLogin(req, res) {
   // Step H: Issue JWT for our backend.
   const token = signLoginToken({
     userId: String(user._id),
-    instagramId: user.instagramId,
+    facebookId: user.facebookId,
     username: user.username
   });
 
@@ -100,19 +121,7 @@ export async function instagramOAuthLogin(req, res) {
   res.redirect(redirectUrl);
 }
 
-export async function instagramOAuthInitiate(req, res) {
-  // Initiate Instagram OAuth flow
-  const appId = process.env.INSTAGRAM_CLIENT_ID || process.env.INSTAGRAM_APP_ID;
-  const redirectUri = process.env.INSTAGRAM_REDIRECT_URI;
-  
-  if (!appId || !redirectUri) {
-    throw createError(
-      500,
-      'Instagram OAuth not configured (set INSTAGRAM_CLIENT_ID and INSTAGRAM_REDIRECT_URI)'
-    );
-  }
-  
-  const instagramAuthUrl = `https://api.instagram.com/oauth/authorize?client_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user_profile&response_type=code`;
-  
-  res.redirect(instagramAuthUrl);
+export async function facebookOAuthInitiate(req, res) {
+  const url = buildFacebookAuthorizeUrl();
+  res.redirect(url);
 }

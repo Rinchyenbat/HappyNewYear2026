@@ -1,8 +1,8 @@
 # HappyNewYear2026 Backend
 
 Node.js + Express + MongoDB (Mongoose) backend with:
-- Instagram OAuth login (with DEV bypass)
-- Developer-controlled Instagram ID whitelist
+- Facebook OAuth login (with DEV bypass)
+- Pending-approval login flow (admin assigns usernames)
 - Server-assigned usernames (users cannot pick usernames)
 - Private messaging (anonymous supported)
 - JWT auth + admin moderation endpoints
@@ -19,32 +19,31 @@ npm install
 npm run dev
 ```
 
-## Whitelist setup (required before login)
-This backend only allows login for Instagram IDs present in the `AllowedInstagramUser` collection.
+## Approval flow
+This backend records Facebook logins and requires an admin to approve users and assign a username.
 
-Recommended (dev): run the seed script:
-```bash
-node src/seed/allowedInstagramUsers.seed.js
-```
+To bootstrap the first admin in production, set:
+- `ADMIN_FACEBOOK_ID`
+- `ADMIN_USERNAME` (optional, defaults to `admin`)
 
-Example (Mongo shell):
-```js
-use hn2026
-db.allowedinstagramusers.insertOne({ instagram_id: "123456789", assigned_username: "some_username" })
-```
+Admin endpoints:
+- `GET /admin/pending-facebook-logins` (admin only)
+- `POST /admin/pending-facebook-logins/approve` with JSON `{ "facebookId": "...", "username": "..." }`
 
 ## Login flow
 
 ### Dev mode (DEV_AUTH_BYPASS=true)
-- The frontend redirects to `GET /auth/instagram/callback?instagram_id=...`
-- Backend validates the `instagram_id` against `allowedinstagramusers`
+- The frontend redirects to `GET /auth/facebook/callback?facebook_id=...`
+- Backend records the login and returns a token only if the user is approved
 - Backend issues a JWT and redirects back to the frontend `/login?token=...&username=...`
 
 ### Production mode (DEV_AUTH_BYPASS=false)
-- The frontend redirects to `GET /auth/instagram`
-- Backend redirects to Instagram OAuth
-- Instagram redirects back to `GET /auth/instagram/callback?code=...`
-- Backend exchanges code -> access_token -> profile, then validates whitelist, issues JWT, and redirects to frontend
+- The frontend redirects to `GET /auth/facebook`
+- Backend redirects to Facebook OAuth
+- Facebook redirects back to `GET /auth/facebook/callback?code=...`
+- Backend exchanges code -> access_token -> profile
+- If approved, issues JWT and redirects to frontend
+- If not approved, records a pending login and redirects to frontend with an error message
 
 ## Authenticated requests
 Use the returned JWT:
