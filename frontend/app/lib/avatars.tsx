@@ -1,38 +1,74 @@
 import React from 'react';
 
 export type AvatarId =
-  | 'firework'
-  | 'sparkle'
-  | 'party-hat'
-  | 'lantern'
-  | 'snowflake'
-  | 'penguin-party'
-  | 'polar-bear-party'
-  | 'rabbit-party'
-  | 'cat-confetti'
-  | 'fox-scarf'
-  | 'champagne-pop'
-  | 'midnight-star';
+  | 'penguin-01'
+  | 'penguin-02'
+  | 'penguin-03'
+  | 'penguin-04'
+  | 'penguin-05'
+  | 'polar-bear-01'
+  | 'polar-bear-02'
+  | 'polar-bear-03'
+  | 'polar-bear-04'
+  | 'polar-bear-05'
+  | 'rabbit-01'
+  | 'rabbit-02'
+  | 'rabbit-03'
+  | 'rabbit-04'
+  | 'rabbit-05'
+  | 'cat-01'
+  | 'cat-02'
+  | 'cat-03'
+  | 'cat-04'
+  | 'cat-05'
+  | 'fox-01'
+  | 'fox-02'
+  | 'fox-03'
+  | 'fox-04'
+  | 'fox-05'
+  | 'deer-01'
+  | 'deer-02'
+  | 'deer-03'
+  | 'deer-04'
+  | 'deer-05';
 
 export type AvatarSpec = {
   id: AvatarId;
   name: string;
-  group: 'object' | 'animal' | 'mascot';
+  group: 'animal';
 };
 
 export const AVATARS: AvatarSpec[] = [
-  { id: 'firework', name: 'Firework', group: 'object' },
-  { id: 'sparkle', name: 'Sparkle', group: 'object' },
-  { id: 'party-hat', name: 'Party Hat', group: 'object' },
-  { id: 'lantern', name: 'Lantern', group: 'object' },
-  { id: 'snowflake', name: 'Snowflake', group: 'object' },
-  { id: 'midnight-star', name: 'Midnight Star', group: 'mascot' },
-  { id: 'champagne-pop', name: 'Pop!', group: 'mascot' },
-  { id: 'penguin-party', name: 'Penguin', group: 'animal' },
-  { id: 'polar-bear-party', name: 'Polar Bear', group: 'animal' },
-  { id: 'rabbit-party', name: 'Rabbit', group: 'animal' },
-  { id: 'cat-confetti', name: 'Cat', group: 'animal' },
-  { id: 'fox-scarf', name: 'Fox', group: 'animal' }
+  { id: 'penguin-01', name: 'Penguin (01)', group: 'animal' },
+  { id: 'penguin-02', name: 'Penguin (02)', group: 'animal' },
+  { id: 'penguin-03', name: 'Penguin (03)', group: 'animal' },
+  { id: 'penguin-04', name: 'Penguin (04)', group: 'animal' },
+  { id: 'penguin-05', name: 'Penguin (05)', group: 'animal' },
+  { id: 'polar-bear-01', name: 'Polar Bear (01)', group: 'animal' },
+  { id: 'polar-bear-02', name: 'Polar Bear (02)', group: 'animal' },
+  { id: 'polar-bear-03', name: 'Polar Bear (03)', group: 'animal' },
+  { id: 'polar-bear-04', name: 'Polar Bear (04)', group: 'animal' },
+  { id: 'polar-bear-05', name: 'Polar Bear (05)', group: 'animal' },
+  { id: 'rabbit-01', name: 'Rabbit (01)', group: 'animal' },
+  { id: 'rabbit-02', name: 'Rabbit (02)', group: 'animal' },
+  { id: 'rabbit-03', name: 'Rabbit (03)', group: 'animal' },
+  { id: 'rabbit-04', name: 'Rabbit (04)', group: 'animal' },
+  { id: 'rabbit-05', name: 'Rabbit (05)', group: 'animal' },
+  { id: 'cat-01', name: 'Cat (01)', group: 'animal' },
+  { id: 'cat-02', name: 'Cat (02)', group: 'animal' },
+  { id: 'cat-03', name: 'Cat (03)', group: 'animal' },
+  { id: 'cat-04', name: 'Cat (04)', group: 'animal' },
+  { id: 'cat-05', name: 'Cat (05)', group: 'animal' },
+  { id: 'fox-01', name: 'Fox (01)', group: 'animal' },
+  { id: 'fox-02', name: 'Fox (02)', group: 'animal' },
+  { id: 'fox-03', name: 'Fox (03)', group: 'animal' },
+  { id: 'fox-04', name: 'Fox (04)', group: 'animal' },
+  { id: 'fox-05', name: 'Fox (05)', group: 'animal' },
+  { id: 'deer-01', name: 'Deer (01)', group: 'animal' },
+  { id: 'deer-02', name: 'Deer (02)', group: 'animal' },
+  { id: 'deer-03', name: 'Deer (03)', group: 'animal' },
+  { id: 'deer-04', name: 'Deer (04)', group: 'animal' },
+  { id: 'deer-05', name: 'Deer (05)', group: 'animal' }
 ];
 
 function SvgBase({
@@ -299,19 +335,261 @@ function FoxScarf({ className }: { className?: string }) {
   );
 }
 
+type Variant = 1 | 2 | 3 | 4 | 5;
+
+function PartyHatTop({ variant }: { variant: Variant }) {
+  const hatColorClass =
+    variant === 1
+      ? 'text-winter-purple'
+      : variant === 2
+        ? 'text-winter-blue'
+        : variant === 3
+          ? 'text-pine'
+          : variant === 4
+            ? 'text-gold'
+            : 'text-winter-purple';
+
+  const pomColorClass = variant === 4 ? 'text-snow' : 'text-gold';
+
+  return (
+    <>
+      <g className={hatColorClass} fill="currentColor" opacity="0.95">
+        <path d="M32 6c-6.6 6.3-10.5 12.4-11.4 18.8 3.3-2 7.2-3.1 11.4-3.1s8.1 1.1 11.4 3.1C42.5 18.4 38.6 12.3 32 6z" />
+      </g>
+      <g className={pomColorClass} fill="currentColor" opacity="0.95">
+        <circle cx="32" cy="7" r="2.2" />
+      </g>
+      {variant === 5 && (
+        <g className="text-gold" fill="currentColor" opacity="0.9">
+          <circle cx="22" cy="22" r="1.4" />
+          <circle cx="44" cy="20" r="1.2" />
+          <circle cx="42" cy="34" r="1.3" />
+        </g>
+      )}
+    </>
+  );
+}
+
+function Scarf({ variant }: { variant: Variant }) {
+  const scarfColorClass = variant === 2 ? 'text-winter-purple' : variant === 3 ? 'text-winter-blue' : 'text-pine';
+  return (
+    <g className={scarfColorClass} fill="currentColor" opacity="0.9">
+      <path d="M18 44h28l-3 6H21l-3-6z" />
+      {variant >= 4 && <path d="M27 44l4 12" opacity="0.95" />}
+    </g>
+  );
+}
+
+function Confetti({ variant }: { variant: Variant }) {
+  if (variant === 1) return null;
+  return (
+    <g className="text-gold" fill="currentColor" opacity="0.9">
+      <circle cx="16" cy="22" r={variant === 2 ? 1.4 : 1.8} />
+      <circle cx="50" cy="20" r={variant === 4 ? 1.8 : 1.4} />
+      <circle cx="46" cy="46" r={variant === 3 ? 1.6 : 1.2} />
+    </g>
+  );
+}
+
+function Penguin({ className, variant }: { className?: string; variant: Variant }) {
+  return (
+    <SvgBase title="Penguin" className={className}>
+      <g className="text-midnight" fill="currentColor">
+        <path d="M32 14c9 0 15 7.5 15 17.5S41 52 32 52 17 41.5 17 31.5 23 14 32 14z" />
+      </g>
+      <g className="text-snow" fill="currentColor" opacity="0.96">
+        <path d="M32 20c6 0 9.6 5.3 9.6 12.1S38 48 32 48s-9.6-9.1-9.6-15.9S26 20 32 20z" />
+        <circle cx="26.7" cy="30" r="2" />
+        <circle cx="37.3" cy="30" r="2" />
+      </g>
+      <g className="text-gold" fill="currentColor" opacity="0.95">
+        <path d="M32 32l5 3-5 3-5-3 5-3z" />
+      </g>
+      <PartyHatTop variant={variant} />
+      {variant >= 3 && <Confetti variant={variant} />}
+    </SvgBase>
+  );
+}
+
+function PolarBear({ className, variant }: { className?: string; variant: Variant }) {
+  return (
+    <SvgBase title="Polar Bear" className={className}>
+      <g className="text-snow" fill="currentColor">
+        <path d="M20 30c0-8 5.4-14 12-14s12 6 12 14-5.4 22-12 22-12-14-12-22z" />
+        <circle cx="22" cy="20" r="4" />
+        <circle cx="42" cy="20" r="4" />
+      </g>
+      <g className="text-midnight" fill="currentColor" opacity="0.75">
+        <circle cx="28" cy="30" r="2" />
+        <circle cx="36" cy="30" r="2" />
+        <path d="M32 32c2.1 0 3.8 1.7 3.8 3.8 0 2.8-2.2 4.8-3.8 4.8s-3.8-2-3.8-4.8c0-2.1 1.7-3.8 3.8-3.8z" />
+      </g>
+      <PartyHatTop variant={variant} />
+      {variant >= 2 && <Confetti variant={variant} />}
+    </SvgBase>
+  );
+}
+
+function Rabbit({ className, variant }: { className?: string; variant: Variant }) {
+  return (
+    <SvgBase title="Rabbit" className={className}>
+      <g className="text-snow" fill="currentColor">
+        <path d="M18 32c0-8 6.3-14 14-14s14 6 14 14-6.3 20-14 20-14-12-14-20z" />
+        <path d="M22 12c2 0 4 3 4 8 0 4-1.2 8-3 10-2-2-3-6-3-10 0-5 0-8 2-8z" />
+        <path d="M42 12c2 0 2 3 2 8 0 4-1 8-3 10-1.8-2-3-6-3-10 0-5 2-8 4-8z" />
+      </g>
+      <g className="text-midnight" fill="currentColor" opacity="0.75">
+        <circle cx="27" cy="32" r="2" />
+        <circle cx="37" cy="32" r="2" />
+      </g>
+      <g className="text-gold" fill="currentColor" opacity="0.95">
+        <path d="M32 34l2.8 2.2L32 38.6l-2.8-2.4L32 34z" />
+      </g>
+      {variant >= 2 && <PartyHatTop variant={variant} />}
+      {variant >= 4 && <Confetti variant={variant} />}
+    </SvgBase>
+  );
+}
+
+function Cat({ className, variant }: { className?: string; variant: Variant }) {
+  return (
+    <SvgBase title="Cat" className={className}>
+      <g className="text-midnight" fill="currentColor">
+        <path d="M16 30c0-7 6.5-13 16-13s16 6 16 13-6.5 22-16 22-16-15-16-22z" />
+        <path d="M20 20l6-6v10" />
+        <path d="M44 20l-6-6v10" />
+      </g>
+      <g className="text-snow" fill="currentColor" opacity="0.92">
+        <circle cx="27" cy="32" r="2" />
+        <circle cx="37" cy="32" r="2" />
+        <path
+          d="M24 40c2.2 1.6 5 2.4 8 2.4s5.8-.8 8-2.4"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+        />
+      </g>
+      {variant >= 2 && <PartyHatTop variant={variant} />}
+      <Confetti variant={variant} />
+    </SvgBase>
+  );
+}
+
+function Fox({ className, variant }: { className?: string; variant: Variant }) {
+  return (
+    <SvgBase title="Fox" className={className}>
+      <g className="text-gold" fill="currentColor">
+        <path d="M32 16c8 0 16 6 16 16S40 52 32 52 16 42 16 32s8-16 16-16z" />
+        <path d="M18 24l6-8v12" />
+        <path d="M46 24l-6-8v12" />
+      </g>
+      <g className="text-snow" fill="currentColor" opacity="0.92">
+        <path d="M32 26c5.6 0 10.2 4 10.2 9 0 6-4.8 12-10.2 12S21.8 41 21.8 35c0-5 4.6-9 10.2-9z" />
+        <circle cx="27" cy="32" r="2" />
+        <circle cx="37" cy="32" r="2" />
+      </g>
+      {variant === 1 ? <PartyHatTop variant={variant} /> : <Scarf variant={variant} />}
+      {variant >= 3 && <Confetti variant={variant} />}
+    </SvgBase>
+  );
+}
+
+function Deer({ className, variant }: { className?: string; variant: Variant }) {
+  return (
+    <SvgBase title="Deer" className={className}>
+      <g className="text-gold" fill="currentColor" opacity="0.95">
+        <path d="M20 34c0-9 6.2-16 12-16s12 7 12 16-6.2 18-12 18-12-9-12-18z" />
+      </g>
+      <g className="text-pine" fill="currentColor" opacity="0.9">
+        <path d="M18 18c4 0 6 3 6 6 0 2.2-1 4.2-2.6 5.6-1.2-1.3-2-3.2-2-5.6 0-2 0-6 .6-6z" />
+        <path d="M46 18c-4 0-6 3-6 6 0 2.2 1 4.2 2.6 5.6 1.2-1.3 2-3.2 2-5.6 0-2 0-6-.6-6z" />
+      </g>
+      <g className="text-midnight" fill="currentColor" opacity="0.75">
+        <circle cx="28" cy="34" r="2" />
+        <circle cx="36" cy="34" r="2" />
+        <path d="M32 36c2 0 3.6 1.6 3.6 3.6 0 2.6-2.1 4.4-3.6 4.4s-3.6-1.8-3.6-4.4c0-2 1.6-3.6 3.6-3.6z" />
+      </g>
+      {variant <= 2 ? <PartyHatTop variant={variant} /> : <Scarf variant={variant} />}
+      {variant >= 4 && <Confetti variant={variant} />}
+    </SvgBase>
+  );
+}
+
+function makeVariantRenderer(
+  base: (props: { className?: string; variant: Variant }) => React.ReactElement,
+  variant: Variant
+) {
+  return ({ className }: { className?: string }) => base({ className, variant });
+}
+
+const Penguin01 = makeVariantRenderer(Penguin, 1);
+const Penguin02 = makeVariantRenderer(Penguin, 2);
+const Penguin03 = makeVariantRenderer(Penguin, 3);
+const Penguin04 = makeVariantRenderer(Penguin, 4);
+const Penguin05 = makeVariantRenderer(Penguin, 5);
+
+const PolarBear01 = makeVariantRenderer(PolarBear, 1);
+const PolarBear02 = makeVariantRenderer(PolarBear, 2);
+const PolarBear03 = makeVariantRenderer(PolarBear, 3);
+const PolarBear04 = makeVariantRenderer(PolarBear, 4);
+const PolarBear05 = makeVariantRenderer(PolarBear, 5);
+
+const Rabbit01 = makeVariantRenderer(Rabbit, 1);
+const Rabbit02 = makeVariantRenderer(Rabbit, 2);
+const Rabbit03 = makeVariantRenderer(Rabbit, 3);
+const Rabbit04 = makeVariantRenderer(Rabbit, 4);
+const Rabbit05 = makeVariantRenderer(Rabbit, 5);
+
+const Cat01 = makeVariantRenderer(Cat, 1);
+const Cat02 = makeVariantRenderer(Cat, 2);
+const Cat03 = makeVariantRenderer(Cat, 3);
+const Cat04 = makeVariantRenderer(Cat, 4);
+const Cat05 = makeVariantRenderer(Cat, 5);
+
+const Fox01 = makeVariantRenderer(Fox, 1);
+const Fox02 = makeVariantRenderer(Fox, 2);
+const Fox03 = makeVariantRenderer(Fox, 3);
+const Fox04 = makeVariantRenderer(Fox, 4);
+const Fox05 = makeVariantRenderer(Fox, 5);
+
+const Deer01 = makeVariantRenderer(Deer, 1);
+const Deer02 = makeVariantRenderer(Deer, 2);
+const Deer03 = makeVariantRenderer(Deer, 3);
+const Deer04 = makeVariantRenderer(Deer, 4);
+const Deer05 = makeVariantRenderer(Deer, 5);
+
 const RENDERERS: Record<AvatarId, (props: { className?: string }) => React.ReactElement> = {
-  firework: Firework,
-  sparkle: Sparkle,
-  'party-hat': PartyHat,
-  lantern: Lantern,
-  snowflake: Snowflake,
-  'midnight-star': MidnightStar,
-  'champagne-pop': ChampagnePop,
-  'penguin-party': PenguinParty,
-  'polar-bear-party': PolarBearParty,
-  'rabbit-party': RabbitParty,
-  'cat-confetti': CatConfetti,
-  'fox-scarf': FoxScarf
+  'penguin-01': Penguin01,
+  'penguin-02': Penguin02,
+  'penguin-03': Penguin03,
+  'penguin-04': Penguin04,
+  'penguin-05': Penguin05,
+  'polar-bear-01': PolarBear01,
+  'polar-bear-02': PolarBear02,
+  'polar-bear-03': PolarBear03,
+  'polar-bear-04': PolarBear04,
+  'polar-bear-05': PolarBear05,
+  'rabbit-01': Rabbit01,
+  'rabbit-02': Rabbit02,
+  'rabbit-03': Rabbit03,
+  'rabbit-04': Rabbit04,
+  'rabbit-05': Rabbit05,
+  'cat-01': Cat01,
+  'cat-02': Cat02,
+  'cat-03': Cat03,
+  'cat-04': Cat04,
+  'cat-05': Cat05,
+  'fox-01': Fox01,
+  'fox-02': Fox02,
+  'fox-03': Fox03,
+  'fox-04': Fox04,
+  'fox-05': Fox05,
+  'deer-01': Deer01,
+  'deer-02': Deer02,
+  'deer-03': Deer03,
+  'deer-04': Deer04,
+  'deer-05': Deer05
 };
 
 export function isAvatarId(value: string): value is AvatarId {
@@ -329,7 +607,7 @@ export function AvatarIcon({
   title?: string;
   frame?: boolean;
 }) {
-  const id: AvatarId = isAvatarId(String(avatarId ?? '')) ? (avatarId as AvatarId) : 'firework';
+  const id: AvatarId = isAvatarId(String(avatarId ?? '')) ? (avatarId as AvatarId) : 'penguin-01';
   const Renderer = RENDERERS[id];
 
   const frameClass = frame

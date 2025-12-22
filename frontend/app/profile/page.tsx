@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 
@@ -8,7 +8,7 @@ import Navbar from '../components/Navbar';
 import SnowEffect from '../components/SnowEffect';
 import api from '../lib/api';
 import { getUserRole, isAuthenticated, setAvatarId } from '../lib/auth';
-import { AVATARS, AvatarIcon, AvatarSpec, isAvatarId } from '../lib/avatars';
+import { AVATARS, AvatarIcon, isAvatarId } from '../lib/avatars';
 
 type ProfileResponse = {
   user: {
@@ -25,19 +25,9 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [avatarId, setAvatarIdState] = useState<string>('firework');
+  const [avatarId, setAvatarIdState] = useState<string>('penguin-01');
   const [username, setUsername] = useState<string>('');
   const [success, setSuccess] = useState(false);
-
-  const grouped = useMemo(() => {
-    const by: Record<AvatarSpec['group'], AvatarSpec[]> = {
-      object: [],
-      animal: [],
-      mascot: []
-    };
-    for (const a of AVATARS) by[a.group].push(a);
-    return by;
-  }, []);
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -121,7 +111,7 @@ export default function ProfilePage() {
             <div>
               <div className="text-snow font-semibold">Selected</div>
               <div className="text-snow-dark text-sm">
-                {AVATARS.find((a) => a.id === avatarId)?.name ?? 'Firework'}
+                {AVATARS.find((a) => a.id === avatarId)?.name ?? 'Penguin (01)'}
               </div>
             </div>
           </div>
@@ -130,35 +120,31 @@ export default function ProfilePage() {
             <div className="text-snow-dark">Loading…</div>
           ) : (
             <div className="space-y-6">
-              {(['object', 'animal', 'mascot'] as const).map((group) => (
-                <div key={group}>
-                  <div className="text-snow-dark text-xs uppercase tracking-wider mb-3">
-                    {group === 'object' ? 'Objects' : group === 'animal' ? 'Animals' : 'Mascots'}
-                  </div>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
-                    {grouped[group].map((a) => {
-                      const active = avatarId === a.id;
-                      return (
-                        <button
-                          key={a.id}
-                          type="button"
-                          onClick={() => setAvatarIdState(a.id)}
-                          className={
-                            'rounded-2xl p-2 border transition-colors ' +
-                            (active
-                              ? 'border-gold/60 bg-gold/10'
-                              : 'border-white/10 hover:border-white/20 bg-white/5')
-                          }
-                          aria-pressed={active}
-                        >
-                          <AvatarIcon avatarId={a.id} frame={false} className="h-14 w-14 mx-auto" title={a.name} />
-                          <div className="mt-1 text-[11px] text-snow-dark truncate">{a.name}</div>
-                        </button>
-                      );
-                    })}
-                  </div>
+              <div>
+                <div className="text-snow-dark text-xs uppercase tracking-wider mb-3">Animals</div>
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                  {AVATARS.map((a) => {
+                    const active = avatarId === a.id;
+                    return (
+                      <button
+                        key={a.id}
+                        type="button"
+                        onClick={() => setAvatarIdState(a.id)}
+                        className={
+                          'rounded-2xl p-2 border transition-colors ' +
+                          (active
+                            ? 'border-gold/60 bg-gold/10'
+                            : 'border-white/10 hover:border-white/20 bg-white/5')
+                        }
+                        aria-pressed={active}
+                      >
+                        <AvatarIcon avatarId={a.id} frame={false} className="h-14 w-14 mx-auto" title={a.name} />
+                        <div className="mt-1 text-[11px] text-snow-dark truncate">{a.name}</div>
+                      </button>
+                    );
+                  })}
                 </div>
-              ))}
+              </div>
 
               <div className="flex items-center gap-3 pt-2">
                 <button
