@@ -6,7 +6,6 @@ import { motion } from 'framer-motion';
 import { setAuthToken } from '../lib/auth';
 import SnowEffect from '../components/SnowEffect';
 
-const FACEBOOK_APP_ID = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || '';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 const DEV_FACEBOOK_ID = process.env.NEXT_PUBLIC_DEV_FACEBOOK_ID || '';
 
@@ -48,27 +47,17 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
 
-    // Check if we're in DEV mode (no Facebook App ID configured)
-    const isDev = !FACEBOOK_APP_ID;
-    
-    if (isDev) {
-      // Development mode with DEV_AUTH_BYPASS
-      // Backend will handle dev login and redirect back to frontend with token
-      const facebookId = DEV_FACEBOOK_ID.trim();
+    // DEV bypass is opt-in and should only be used when explicitly configured.
+    // In production, the normal path is always to redirect to the backend OAuth initiate endpoint.
+    const facebookId = DEV_FACEBOOK_ID.trim();
+    const useDevBypass = Boolean(facebookId);
 
-      if (!facebookId) {
-        setError(
-          'Development login is not configured. Set NEXT_PUBLIC_DEV_FACEBOOK_ID to a Facebook user id (or configure real Facebook OAuth).'
-        );
-        setLoading(false);
-        return;
-      }
-
+    if (useDevBypass) {
       window.location.href = `${API_URL}/auth/facebook/callback?facebook_id=${encodeURIComponent(facebookId)}`;
-    } else {
-      // Production: Redirect to backend /auth/facebook which initiates Facebook OAuth
-      window.location.href = `${API_URL}/auth/facebook`;
+      return;
     }
+
+    window.location.href = `${API_URL}/auth/facebook`;
   };
 
   return (
@@ -133,7 +122,7 @@ export default function LoginPage() {
             <div className="mt-6 text-center text-xs text-snow-dark space-y-2">
               <p>✨ After login, your account may require admin approval ✨</p>
               <p className="text-snow-dark/70">
-                {!FACEBOOK_APP_ID 
+                {DEV_FACEBOOK_ID.trim()
                   ? 'Development mode: Using test authentication'
                   : "You'll be redirected to Facebook to authenticate"}
               </p>
