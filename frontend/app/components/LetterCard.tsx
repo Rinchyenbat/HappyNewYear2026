@@ -48,11 +48,11 @@ export default function LetterCard({ letter, type = 'inbox' }: LetterCardProps) 
               />
 
               {/* Sender strip (no 'From:' label) */}
-              <div className="absolute left-6 right-6 top-6">
+              <div className="absolute left-[12%] right-[12%] top-[10%]">
                 <div
                   className={
                     dancingScript.className +
-                    ' text-snow text-lg md:text-xl drop-shadow-sm truncate max-w-[85%]'
+                    ' text-snow text-lg md:text-xl drop-shadow-sm truncate max-w-[82%]'
                   }
                   title={isAnonymous ? 'Anonymous' : displayName}
                 >
@@ -61,8 +61,8 @@ export default function LetterCard({ letter, type = 'inbox' }: LetterCardProps) 
               </div>
 
               {/* Date + avatar (avatar on the right, date on the left) */}
-              <div className="absolute left-6 right-6 bottom-6 flex items-center justify-between">
-                <span className="text-xs text-midnight truncate max-w-[70%]">
+              <div className="absolute left-[12%] right-[12%] bottom-[14%] flex items-center justify-between">
+                <span className="text-xs text-midnight truncate max-w-[68%]">
                   {new Date(letter.createdAt).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
