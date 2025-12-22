@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 
 import SnowEffect from './components/SnowEffect';
 import BurstOverlay, { useBurstOverlay } from './components/BurstOverlay';
@@ -50,6 +50,11 @@ export default function HomePage() {
   const [soundOn, setSoundOn] = useState(false);
   const [wish, setWish] = useState<string>(() => randomWish());
   const { particles, burst } = useBurstOverlay();
+
+  const { scrollY } = useScroll();
+  const skyY = useTransform(scrollY, [0, 900], [0, 40]);
+  const cloudsY = useTransform(scrollY, [0, 900], [0, 90]);
+  const hillsY = useTransform(scrollY, [0, 900], [0, 160]);
 
   const cards = useMemo(
     () => [
@@ -133,11 +138,70 @@ export default function HomePage() {
       <SnowEffect />
       <BurstOverlay particles={particles} />
 
-      {/* Parallax-ish background shapes */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-winter-purple/10 blur-3xl" />
-        <div className="absolute top-32 -right-28 h-96 w-96 rounded-full bg-winter-blue/10 blur-3xl" />
-        <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-midnight-dark/80 to-transparent" />
+      {/* Winter scene background (inspired vibe, original composition) */}
+      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+        {/* Aurora / glow */}
+        <motion.div style={{ y: skyY }} className="absolute inset-0">
+          <div className="absolute -top-28 left-1/2 -translate-x-1/2 h-[520px] w-[900px] rounded-full bg-winter-purple/10 blur-3xl" />
+          <div className="absolute -top-24 left-1/3 -translate-x-1/2 h-[460px] w-[760px] rounded-full bg-winter-blue/10 blur-3xl" />
+          <div className="absolute top-24 right-0 h-[520px] w-[520px] rounded-full bg-gold/5 blur-3xl" />
+        </motion.div>
+
+        {/* Stars (lightweight) */}
+        <motion.div style={{ y: skyY }} className="absolute inset-0 opacity-80">
+          {Array.from({ length: 34 }).map((_, i) => (
+            <div
+              // eslint-disable-next-line react/no-array-index-key
+              key={i}
+              className="absolute rounded-full bg-snow/70"
+              style={{
+                width: i % 7 === 0 ? 3 : 2,
+                height: i % 7 === 0 ? 3 : 2,
+                top: `${(i * 37) % 88}%`,
+                left: `${(i * 53) % 96}%`,
+                opacity: i % 9 === 0 ? 0.95 : 0.55
+              }}
+            />
+          ))}
+        </motion.div>
+
+        {/* Floating clouds */}
+        <motion.div style={{ y: cloudsY }} className="absolute inset-0">
+          <div className="absolute top-24 left-10 h-16 w-44 rounded-full bg-snow/5 blur-sm" />
+          <div className="absolute top-40 left-44 h-14 w-36 rounded-full bg-snow/5 blur-sm" />
+          <div className="absolute top-28 right-16 h-16 w-48 rounded-full bg-snow/5 blur-sm" />
+          <div className="absolute top-52 right-52 h-14 w-36 rounded-full bg-snow/5 blur-sm" />
+        </motion.div>
+
+        {/* Ornaments */}
+        <motion.div style={{ y: cloudsY }} className="absolute -top-10 left-0 right-0 h-44">
+          <div className="absolute left-[10%] top-0 h-40 w-px bg-white/10" />
+          <div className="absolute left-[10%] top-32 h-7 w-7 rounded-full bg-red-500/70 shadow-sm" />
+
+          <div className="absolute left-[38%] top-0 h-44 w-px bg-white/10" />
+          <div className="absolute left-[38%] top-36 h-8 w-8 rounded-full bg-gold/70 shadow-sm" />
+
+          <div className="absolute left-[72%] top-0 h-36 w-px bg-white/10" />
+          <div className="absolute left-[72%] top-28 h-7 w-7 rounded-full bg-pine-light/70 shadow-sm" />
+        </motion.div>
+
+        {/* Hills / snow ground */}
+        <motion.div style={{ y: hillsY }} className="absolute -bottom-24 left-0 right-0">
+          <div className="absolute left-1/2 -translate-x-1/2 h-64 w-[140%] rounded-[999px] bg-pine/20 blur-sm" />
+          <div className="absolute left-1/2 -translate-x-1/2 top-16 h-72 w-[160%] rounded-[999px] bg-midnight-dark/70" />
+          <div className="absolute left-1/2 -translate-x-1/2 top-12 h-56 w-[150%] rounded-[999px] bg-midnight/40" />
+          <div className="absolute left-0 right-0 top-36 h-64 bg-gradient-to-t from-midnight-dark to-transparent" />
+
+          {/* Simple tree silhouettes */}
+          <div className="absolute left-[12%] top-14 h-0 w-0 border-l-[26px] border-l-transparent border-r-[26px] border-r-transparent border-b-[54px] border-b-pine/30" />
+          <div className="absolute left-[10%] top-60 h-6 w-3 rounded bg-pine/30" />
+
+          <div className="absolute left-[22%] top-18 h-0 w-0 border-l-[18px] border-l-transparent border-r-[18px] border-r-transparent border-b-[40px] border-b-pine/25" />
+          <div className="absolute left-[21.5%] top-56 h-5 w-2.5 rounded bg-pine/25" />
+
+          <div className="absolute right-[16%] top-16 h-0 w-0 border-l-[22px] border-l-transparent border-r-[22px] border-r-transparent border-b-[48px] border-b-pine/25" />
+          <div className="absolute right-[16.7%] top-58 h-5 w-3 rounded bg-pine/25" />
+        </motion.div>
       </div>
 
       <header className="relative z-10">
@@ -191,20 +255,20 @@ export default function HomePage() {
                 Happy New Year <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold via-gold-light to-gold">2026</span>
               </h1>
               <p className="mt-5 text-lg text-snow-dark max-w-xl">
-                A playful winter playground inspired by Santa Tracker—count down, click for sparkle, and send warm letters.
+                A playful winter playground—count down, click for sparkle, and send warm letters.
               </p>
 
               <div className="mt-8 flex flex-col sm:flex-row gap-3">
                 <Link
                   href="/login"
-                  className="rounded-xl px-6 py-3 font-semibold text-midnight bg-gradient-to-r from-gold to-gold-light hover:shadow-lg hover:scale-[1.02] transition-transform"
+                  className="rounded-2xl px-6 py-3 font-semibold text-midnight bg-gradient-to-r from-gold to-gold-light hover:shadow-lg hover:scale-[1.02] transition-transform"
                   onClick={(e) => onCardClick(e, { kind: 'confetti' })}
                 >
                   Start the Fun
                 </Link>
                 <Link
                   href="#activities"
-                  className="rounded-xl px-6 py-3 font-semibold text-snow glass-effect hover:shadow-lg hover:scale-[1.02] transition-transform"
+                  className="rounded-2xl px-6 py-3 font-semibold text-snow glass-effect hover:shadow-lg hover:scale-[1.02] transition-transform"
                   onClick={(e) => onCardClick(e, { kind: 'stars' })}
                 >
                   Explore Activities
@@ -221,7 +285,10 @@ export default function HomePage() {
             >
               <div className="relative mx-auto w-full max-w-lg">
                 <div className="absolute inset-0 rounded-[2rem] winter-gradient blur-xl opacity-60" />
-                <div className="relative rounded-[2rem] glass-effect p-8 letter-shadow">
+                <div className="relative rounded-[2rem] glass-effect p-8 letter-shadow overflow-hidden">
+                  {/* Soft 3D-ish bubbles */}
+                  <div className="absolute -top-16 -right-16 h-44 w-44 rounded-full bg-gold/10 blur-2xl" />
+                  <div className="absolute -bottom-24 -left-20 h-56 w-56 rounded-full bg-winter-blue/10 blur-2xl" />
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-2">
                       <div className="h-3 w-3 rounded-full bg-red-500/80" />
@@ -232,7 +299,7 @@ export default function HomePage() {
                   </div>
 
                   <motion.div
-                    className="rounded-2xl bg-gradient-to-br from-midnight-light/80 via-midnight/40 to-midnight-dark/60 p-6 border border-white/10"
+                    className="rounded-3xl bg-gradient-to-br from-midnight-light/80 via-midnight/40 to-midnight-dark/60 p-6 border border-white/10"
                     animate={{ y: [0, -8, 0] }}
                     transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
                   >
@@ -253,7 +320,7 @@ export default function HomePage() {
                         { label: 'Min', value: countdown.minutes },
                         { label: 'Sec', value: countdown.seconds }
                       ].map((b) => (
-                        <div key={b.label} className="rounded-xl bg-white/5 border border-white/10 p-3 text-center">
+                        <div key={b.label} className="rounded-2xl bg-white/5 border border-white/10 p-3 text-center">
                           <div className="text-2xl font-sans font-extrabold text-snow">{pad2(b.value)}</div>
                           <div className="text-xs text-snow-dark mt-1">{b.label}</div>
                         </div>
@@ -261,7 +328,7 @@ export default function HomePage() {
                     </div>
                   </motion.div>
 
-                  <div className="mt-6 rounded-2xl bg-white/5 border border-white/10 p-5">
+                  <div className="mt-6 rounded-3xl bg-white/5 border border-white/10 p-5">
                     <div className="text-xs text-snow-dark">Today’s wish</div>
                     <div className="mt-2 text-snow font-sans font-semibold">{wish}</div>
                     <div className="mt-3 text-xs text-snow-dark">Tip: tap “Share a Wish” to copy.</div>
@@ -289,6 +356,15 @@ export default function HomePage() {
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {cards.map((c, idx) => {
+              const icon =
+                c.title === 'Write a Letter'
+                  ? '✍️'
+                  : c.title === 'Open Inbox'
+                    ? '📬'
+                    : c.title === 'Share a Wish'
+                      ? '🎉'
+                      : '❄️';
+
               const content = (
                 <motion.div
                   key={c.title}
@@ -301,9 +377,16 @@ export default function HomePage() {
                   className="group h-full"
                 >
                   <div
-                    className="h-full glass-effect rounded-2xl p-5 border border-white/10 hover:border-white/20 transition-colors"
+                    className="h-full glass-effect rounded-3xl p-5 border border-white/10 hover:border-white/20 transition-colors"
                   >
-                    <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${c.accent} mb-4 shadow-sm`} />
+                    <div className="flex items-start justify-between gap-3 mb-4">
+                      <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${c.accent} shadow-sm flex items-center justify-center text-xl`}>
+                        {icon}
+                      </div>
+                      <div className="h-8 w-8 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-snow/80 group-hover:bg-white/10 transition-colors">
+                        ✨
+                      </div>
+                    </div>
                     <div className="font-sans font-bold text-snow text-lg">{c.title}</div>
                     <div className="mt-2 text-sm text-snow-dark">{c.description}</div>
                     <div className="mt-5 flex items-center gap-2 text-sm font-semibold text-snow">
