@@ -37,12 +37,29 @@ if (allowedOrigins.length === 0 && env.FRONTEND_URL) {
   allowedOrigins.push(env.FRONTEND_URL.trim());
 }
 
+if (env.NODE_ENV === 'production' && allowedOrigins.length === 0) {
+  // eslint-disable-next-line no-console
+  console.warn(
+    'CORS is blocking all browser origins in production (missing CORS_ORIGIN / FRONTEND_URL). '
+  );
+}
+
+const corsOptions = {
+  origin:
+    allowedOrigins.length > 0
+      ? allowedOrigins
+      : env.NODE_ENV === 'production'
+        ? false
+        : true,
+  credentials: false
+};
+
 app.use(
-  cors({
-    origin: allowedOrigins.length > 0 ? allowedOrigins : env.NODE_ENV === 'production' ? false : true,
-    credentials: false
-  })
+  cors(corsOptions)
 );
+
+// Explicitly handle preflight requests for all routes.
+app.options('*', cors(corsOptions));
 
 app.use(
   rateLimit({
