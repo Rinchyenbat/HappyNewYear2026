@@ -47,11 +47,15 @@ export const env = Object.freeze({
   JWT_SECRET: requireEnv('JWT_SECRET'),
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN ?? '7d',
   CORS_ORIGIN: process.env.CORS_ORIGIN ?? '',
-  // These are required for the OAuth login route, but kept optional here
-  // so scripts (e.g. seed) can run with only DB/JWT configured.
-  FACEBOOK_CLIENT_ID: process.env.FACEBOOK_CLIENT_ID ?? '',
-  FACEBOOK_CLIENT_SECRET: process.env.FACEBOOK_CLIENT_SECRET ?? '',
-  FACEBOOK_REDIRECT_URI: process.env.FACEBOOK_REDIRECT_URI ?? '',
+
+  // Clerk JWT verification (for /auth/clerk/exchange).
+  // Example JWKS URL: https://<your-clerk-domain>/.well-known/jwks.json
+  CLERK_JWKS_URL: process.env.CLERK_JWKS_URL ?? '',
+  // Optional: enforce issuer match (recommended).
+  // Example issuer: https://<your-clerk-domain>
+  CLERK_ISSUER: process.env.CLERK_ISSUER ?? '',
+  // Optional: used to fetch user details (e.g., Facebook provider user id) from Clerk API.
+  CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY ?? '',
 
   // Optional: bootstrap the first admin.
   // If set, a login with this facebookId will create an admin user (once) if not present.

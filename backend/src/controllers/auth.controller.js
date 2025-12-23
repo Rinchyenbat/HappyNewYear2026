@@ -4,54 +4,38 @@ import { User } from '../models/User.js';
 import { LoginLog } from '../models/LoginLog.js';
 import { PendingFacebookLogin } from '../models/PendingFacebookLogin.js';
 import { signLoginToken } from '../utils/jwt.js';
-import { buildFacebookAuthorizeUrl, getFacebookAccessToken, getFacebookProfile } from '../utils/facebookOAuth.js';
+import { verifyClerkJwt } from '../utils/clerkJwt.js';
+import { getFacebookProviderUserIdFromClerk } from '../utils/clerkApi.js';
 import { env } from '../config/env.js';
 
-export async function facebookOAuthLogin(req, res) {
-  const isDevBypass = process.env.DEV_AUTH_BYPASS === 'true';
-
-  let facebookId;
-  let facebookName;
-
-  // OAuth Step A:
-  // PROD: Facebook redirects back with `?code=...`; backend exchanges code -> token -> profile.
-  // DEV BYPASS: skip Facebook calls and accept `facebook_id` from query.
-  if (isDevBypass) {
-    facebookId = String(req.query?.facebook_id ?? '').trim();
-    if (!facebookId) {
-      throw createError(400, 'facebook_id is required in dev bypass mode');
-    }
-  } else {
-    const code = String(req.query?.code ?? '').trim();
-
-    let accessToken;
-    let facebookProfile;
-
-    try {
-      // OAuth Step B: Exchange `code` for an access token.
-      accessToken = await getFacebookAccessToken(code);
-
-      // OAuth Step C: Fetch Facebook profile via Graph API.
-      facebookProfile = await getFacebookProfile(accessToken);
-    } catch (err) {
-      // We don't have a reliable facebookId yet; store the failure with minimal info.
-      await LoginLog.create({
-        facebookId: 'unknown',
-        success: false,
-        reason: 'oauth_failed',
-        ip: req.ip,
-        userAgent: req.get('user-agent')
-      });
-      throw err;
-    }
-
-    // OAuth Step D: Extract Facebook user identity.
-    facebookId = facebookProfile.id;
-    facebookName = facebookProfile.name;
+export async function clerkExchangeLogin(req, res) {
+  const header = req.headers.authorization;
+  if (!header || !header.startsWith('Bearer ')) {
+    throw createError(401, 'Missing Authorization header');
   }
 
+  const token = header.slice('Bearer '.length).trim();
+  if (!token) {
+    throw createError(401, 'Missing token');
+  }
 
-  // Step E: If the user already exists (approved), issue a login token.
+  const payload = await verifyClerkJwt(token);
+  const clerkUserId = String(payload?.sub ?? '').trim();
+  if (!clerkUserId) {
+    throw createError(401, 'Clerk token missing sub');
+  }
+
+  // Keep semantics: prefer the actual Facebook account id when available (via Clerk API).
+  // Fallback to Clerk user id so the app still works without CLERK_SECRET_KEY.
+  const providerFacebookId = await getFacebookProviderUserIdFromClerk(clerkUserId);
+  const facebookId = providerFacebookId || clerkUserId;
+  const displayName =
+    (typeof payload?.name === 'string' && payload.name.trim() ? payload.name.trim() : '') ||
+    (typeof payload?.preferred_username === 'string' && payload.preferred_username.trim()
+      ? payload.preferred_username.trim()
+      : '') ||
+    (typeof payload?.email === 'string' && payload.email.trim() ? payload.email.trim() : '');
+
   let user = await User.findOne({ facebookId });
 
   // Optional: bootstrap admin on first login.
@@ -65,14 +49,13 @@ export async function facebookOAuthLogin(req, res) {
   }
 
   if (!user) {
-    // Step F: Record/refresh a pending approval request (admin will assign username later).
     const now = new Date();
     await PendingFacebookLogin.updateOne(
       { facebookId },
       {
         $setOnInsert: { facebookId, firstSeenAt: now },
         $set: {
-          facebookName: facebookName ? String(facebookName) : undefined,
+          facebookName: displayName ? String(displayName) : undefined,
           status: 'pending',
           lastSeenAt: now,
           lastIp: req.ip,
@@ -91,13 +74,9 @@ export async function facebookOAuthLogin(req, res) {
       userAgent: req.get('user-agent')
     });
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    const msg = 'Pending approval. Please contact the admin.';
-    res.redirect(`${frontendUrl}/login?error=${encodeURIComponent(msg)}`);
-    return;
+    throw createError(403, 'Pending approval. Please contact the admin.');
   }
 
-  // Step G: Record successful login for auditing/moderation.
   await LoginLog.create({
     facebookId,
     user: user._id,
@@ -107,22 +86,12 @@ export async function facebookOAuthLogin(req, res) {
     userAgent: req.get('user-agent')
   });
 
-  // Step H: Issue JWT for our backend.
-  const token = signLoginToken({
+  const appToken = signLoginToken({
     userId: String(user._id),
     facebookId: user.facebookId,
     username: user.username,
     role: user.role
   });
 
-  // Step I: Redirect to frontend with token
-  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-  const redirectUrl = `${frontendUrl}/login?token=${encodeURIComponent(token)}&username=${encodeURIComponent(user.username)}`;
-  
-  res.redirect(redirectUrl);
-}
-
-export async function facebookOAuthInitiate(req, res) {
-  const url = buildFacebookAuthorizeUrl();
-  res.redirect(url);
+  res.status(200).json({ token: appToken, username: user.username, role: user.role });
 }

@@ -23,7 +23,7 @@ mongod --dbpath ~/.mongodb/data --logpath ~/.mongodb/mongod.log --fork
 cd backend
 
 # Start with environment variables
-DEV_AUTH_BYPASS=true \
+# Auth is handled via Clerk (Facebook OAuth)
 FRONTEND_URL=http://localhost:3000 \
 PORT=4000 \
 MONGODB_URI=mongodb://127.0.0.1:27017/hn2026 \
@@ -54,9 +54,9 @@ npm run dev
 ## Step 4: Login & Test
 
 1. Open browser: http://localhost:3000
-2. Click **"Login with Facebook"** button
-3. If using development bypass, set `NEXT_PUBLIC_DEV_FACEBOOK_ID` (any value is fine for creating a pending request)
-4. You'll be redirected to `/inbox`
+2. Click **"Continue with Facebook"** button
+3. Clerk will complete Facebook OAuth
+4. If approved, you'll be redirected to `/inbox` (otherwise you'll see a pending approval message)
 
 ## Test the Features
 
@@ -85,7 +85,7 @@ pkill mongod
 
 ## Login as Different Users
 
-Set `NEXT_PUBLIC_DEV_FACEBOOK_ID` in `frontend/.env.local`.
+Use a different Facebook account in the Clerk sign-in flow.
 
 Note: with the new approval flow, first-time logins will show "Pending approval" until an admin approves and assigns a username.
 
@@ -115,7 +115,7 @@ mongod --dbpath ~/.mongodb/data --port 27018
 - **Check browser console**: Look for specific error messages
 
 ### Login redirects but no token
-- **Check DEV_AUTH_BYPASS**: Must be `true` for development
+- **Check Clerk env vars**: Frontend needs `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and backend needs `CLERK_JWKS_URL` + `CLERK_ISSUER`
 - **Check approval**: First-time logins will be pending until an admin approves and assigns a username
 - **Check backend logs**: Look for "pending_approval" or other errors
 
@@ -123,7 +123,7 @@ mongod --dbpath ~/.mongodb/data --port 27018
 
 ### Backend (Required for Dev)
 ```bash
-DEV_AUTH_BYPASS=true
+# No DEV_AUTH_BYPASS (removed). Use Clerk sign-in on /login.
 FRONTEND_URL=http://localhost:3000
 PORT=4000
 MONGODB_URI=mongodb://127.0.0.1:27017/hn2026
@@ -162,7 +162,7 @@ Once everything works:
 
 ## Production Setup
 
-For production deployment, follow the Facebook OAuth section in [README.md](README.md).
+For production deployment, follow the Clerk auth section in [README.md](README.md).
 
 ---
 

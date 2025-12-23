@@ -1,7 +1,7 @@
 # HappyNewYear2026 Backend
 
 Node.js + Express + MongoDB (Mongoose) backend with:
-- Facebook OAuth login (with DEV bypass)
+- Clerk-based login (Facebook-only in the frontend)
 - Pending-approval login flow (admin assigns usernames)
 - Server-assigned usernames (users cannot pick usernames)
 - Private messaging (anonymous supported)
@@ -32,18 +32,13 @@ Admin endpoints:
 
 ## Login flow
 
-### Dev mode (DEV_AUTH_BYPASS=true)
-- The frontend redirects to `GET /auth/facebook/callback?facebook_id=...`
-- Backend records the login and returns a token only if the user is approved
-- Backend issues a JWT and redirects back to the frontend `/login?token=...&username=...`
+The frontend authenticates users via Clerk (Facebook OAuth). After Clerk sign-in, the frontend calls:
 
-### Production mode (DEV_AUTH_BYPASS=false)
-- The frontend redirects to `GET /auth/facebook`
-- Backend redirects to Facebook OAuth
-- Facebook redirects back to `GET /auth/facebook/callback?code=...`
-- Backend exchanges code -> access_token -> profile
-- If approved, issues JWT and redirects to frontend
-- If not approved, records a pending login and redirects to frontend with an error message
+- `POST /auth/clerk/exchange` with `Authorization: Bearer <clerk_session_jwt>`
+
+The backend verifies the Clerk JWT (via JWKS) and then:
+- If the user is approved (exists in `users`), returns an app JWT for API calls.
+- If not approved, records a pending login (`pending_facebook_logins`) and returns 403.
 
 ## Authenticated requests
 Use the returned JWT:

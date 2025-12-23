@@ -29,7 +29,7 @@ export const setAvatarId = (avatarId: string) => {
   }
 };
 
-export const logout = () => {
+export const clearAuthStorage = () => {
   if (!canUseBrowserStorage()) return;
 
   try {
@@ -39,6 +39,12 @@ export const logout = () => {
   } catch {
     // Ignore storage failures
   }
+};
+
+export const logout = () => {
+  if (!canUseBrowserStorage()) return;
+
+  clearAuthStorage();
 
   window.location.href = '/login';
 };

@@ -36,7 +36,11 @@ Visit `http://localhost:3000` to see the application.
 
 ## Project Structure
 
-```
+Notes:
+- Uses Clerk Facebook OAuth in the UI
+- After sign-in, exchanges Clerk session JWT via `${API_URL}/auth/clerk/exchange`
+
+```text
 app/
 ├── components/          # Reusable UI components
 │   ├── Navbar.tsx
@@ -58,40 +62,22 @@ app/
 
 ## Authentication
 
-This app uses **Facebook OAuth** for authentication.
+This app uses **Clerk** for **Facebook-only** sign-in.
 
 ### Login Flow
 
-1. User clicks "Login with Facebook" button
-2. **Development Mode** (`NEXT_PUBLIC_FACEBOOK_APP_ID` not set):
-   - Redirects to `${API_URL}/auth/facebook/callback?facebook_id=...`
-   - Uses `NEXT_PUBLIC_DEV_FACEBOOK_ID` to simulate a Facebook user id
-   - If not yet approved, the backend records a pending login and redirects back with an error
-
-3. **Production Mode** (`NEXT_PUBLIC_FACEBOOK_APP_ID` set):
-   - Redirects to `${API_URL}/auth/facebook`
-   - Backend redirects to Facebook OAuth
-   - Facebook redirects to `${API_URL}/auth/facebook/callback?code=...`
-   - If approved, backend redirects to `/login?token=...&username=...`
-   - If not approved, backend redirects to `/login?error=Pending%20approval...`
-
-4. Frontend receives token & username in URL params
-5. Stores in localStorage
-6. Redirects to `/inbox`
+1. User clicks "Continue with Facebook" on `/login`
+2. Clerk completes Facebook OAuth
+3. Frontend exchanges the Clerk session JWT via `${API_URL}/auth/clerk/exchange`
+4. If approved, backend returns an app JWT; otherwise backend returns 403 and records a pending login
 
 ### Important Notes
 
 - Users don't manually type any IDs
 - Username is assigned by an admin during approval
-- Frontend displays assigned username from `localStorage.getItem('username')`
-- First-time logins may require admin approval
-
-## Features
 
 ### Pages
 
-1. **Login** - Facebook OAuth button
-2. **Inbox** - View received letters
 3. **Sent** - View sent letters
 4. **Write Letter** - Compose new letters
 5. **Read Letter** - View letter details with animation
@@ -140,8 +126,8 @@ npm start
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:4000
 
-# Optional (development only): pick which facebook id you simulate in DEV_AUTH_BYPASS mode
-# NEXT_PUBLIC_DEV_FACEBOOK_ID=
+# Clerk (required)
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_...
 ```
 
 ## License

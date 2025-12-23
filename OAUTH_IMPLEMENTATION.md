@@ -1,7 +1,8 @@
 # OAuth Implementation Summary (Outdated)
 
-NOTE: This document describes the previous Instagram OAuth implementation.
-The project has been migrated to Facebook login (`/auth/facebook`) and this doc is kept only for historical context.
+NOTE: This document is kept only for historical context.
+The project has migrated from Instagram OAuth -> Facebook OAuth -> Clerk (Facebook OAuth).
+The legacy `/auth/facebook` backend routes have been removed in favor of `POST /auth/clerk/exchange`.
 
 ## What Changed
 

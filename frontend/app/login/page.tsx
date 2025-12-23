@@ -1,72 +1,95 @@
 "use client";
 
-import { Suspense, useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { useAuth, useSignIn } from '@clerk/nextjs';
+import axios from 'axios';
 import { setAuthToken } from '../lib/auth';
 import SnowEffect from '../components/SnowEffect';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-const DEV_FACEBOOK_ID = process.env.NEXT_PUBLIC_DEV_FACEBOOK_ID || '';
-
-function OAuthCallbackHandler({
-  onError,
-  onLoadingChange,
-}: {
-  onError: (message: string) => void;
-  onLoadingChange: (loading: boolean) => void;
-}) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    const token = searchParams.get('token');
-    const username = searchParams.get('username');
-    const errorParam = searchParams.get('error');
-
-    if (errorParam) {
-      onError(decodeURIComponent(errorParam));
-      onLoadingChange(false);
-      return;
-    }
-
-    if (token && username) {
-      setAuthToken(token, username);
-      router.push('/inbox');
-    }
-  }, [searchParams, router, onError, onLoadingChange]);
-
-  return null;
-}
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const router = useRouter();
+  const { isSignedIn, getToken } = useAuth();
+  const { isLoaded, signIn } = useSignIn();
 
-  const handleFacebookLogin = () => {
+  useEffect(() => {
+    let cancelled = false;
+
+    async function exchange() {
+      if (!isSignedIn) return;
+
+      setError('');
+      setLoading(true);
+
+      try {
+        const clerkToken = await getToken();
+        if (!clerkToken) {
+          throw new Error('Missing Clerk session token');
+        }
+
+        const res = await axios.post<{ token: string; username: string }>(
+          `${API_URL}/auth/clerk/exchange`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${clerkToken}`
+            }
+          }
+        );
+
+        if (cancelled) return;
+
+        if (res.data?.token && res.data?.username) {
+          setAuthToken(res.data.token, res.data.username);
+          router.push('/inbox');
+          return;
+        }
+
+        throw new Error('Invalid exchange response');
+      } catch (err: any) {
+        if (cancelled) return;
+        const message =
+          err?.response?.data?.message ||
+          err?.message ||
+          'Login failed. Please try again.';
+        setError(String(message));
+        setLoading(false);
+      }
+    }
+
+    exchange();
+    return () => {
+      cancelled = true;
+    };
+  }, [isSignedIn, getToken, router]);
+
+  const startFacebookLogin = async () => {
     setError('');
-    setLoading(true);
 
-    // DEV bypass is opt-in and should only be used when explicitly configured.
-    // In production, the normal path is always to redirect to the backend OAuth initiate endpoint.
-    const facebookId = DEV_FACEBOOK_ID.trim();
-    const useDevBypass = Boolean(facebookId);
-
-    if (useDevBypass) {
-      window.location.href = `${API_URL}/auth/facebook/callback?facebook_id=${encodeURIComponent(facebookId)}`;
+    if (!isLoaded || !signIn) {
+      setError('Authentication is still loading. Please try again.');
       return;
     }
 
-    window.location.href = `${API_URL}/auth/facebook`;
+    try {
+      await signIn.authenticateWithRedirect({
+        strategy: 'oauth_facebook',
+        redirectUrl: '/sso-callback',
+        redirectUrlComplete: '/login'
+      });
+    } catch {
+      setError('Could not start Facebook login. Please try again.');
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
       <SnowEffect />
-
-      <Suspense fallback={null}>
-        <OAuthCallbackHandler onError={setError} onLoadingChange={setLoading} />
-      </Suspense>
       
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -109,23 +132,19 @@ export default function LoginPage() {
             )}
 
             <button
-              onClick={handleFacebookLogin}
+              onClick={startFacebookLogin}
               disabled={loading}
-              className="w-full py-4 rounded-lg bg-gradient-to-r from-[#833AB4] via-[#E1306C] to-[#F56040] text-white font-semibold hover:shadow-xl hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-3"
+              className="w-full py-4 rounded-lg bg-gradient-to-r from-winter-blue to-winter-purple text-white font-semibold hover:shadow-xl hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-3"
             >
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M22 12.061C22 6.504 17.523 2 12 2S2 6.504 2 12.061C2 17.082 5.657 21.245 10.438 22v-7.03H7.898v-2.909h2.54V9.845c0-2.522 1.492-3.915 3.777-3.915 1.094 0 2.238.197 2.238.197v2.476H15.19c-1.246 0-1.634.776-1.634 1.572v1.886h2.78l-.444 2.909h-2.336V22C18.343 21.245 22 17.082 22 12.061z"/>
               </svg>
-              {loading ? 'Connecting to Facebook...' : 'Login with Facebook'}
+              Continue with Facebook
             </button>
 
             <div className="mt-6 text-center text-xs text-snow-dark space-y-2">
               <p>✨ After login, your account may require admin approval ✨</p>
-              <p className="text-snow-dark/70">
-                {DEV_FACEBOOK_ID.trim()
-                  ? 'Development mode: Using test authentication'
-                  : "You'll be redirected to Facebook to authenticate"}
-              </p>
+              <p className="text-snow-dark/70">{loading ? 'Finishing login…' : 'Facebook sign-in only'}</p>
             </div>
           </div>
         </motion.div>

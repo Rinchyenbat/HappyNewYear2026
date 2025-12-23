@@ -3,13 +3,15 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { getAuthToken, getAvatarId, getUserRole, getUsername, logout, setAvatarId } from '../lib/auth';
+import { useClerk } from '@clerk/nextjs';
+import { clearAuthStorage, getAuthToken, getAvatarId, getUserRole, getUsername, setAvatarId } from '../lib/auth';
 import { useEffect, useState } from 'react';
 import api from '../lib/api';
 import { AvatarIcon } from '../lib/avatars';
 
 export default function Navbar() {
   const pathname = usePathname();
+  const clerk = useClerk();
   const [username, setUsername] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [avatarId, setAvatarIdState] = useState<string | null>(null);
@@ -37,6 +39,15 @@ export default function Navbar() {
   }, []);
 
   const isAdmin = role === 'admin';
+  const handleLogout = async () => {
+    clearAuthStorage();
+
+    try {
+      await clerk.signOut({ redirectUrl: '/login' });
+    } catch {
+      window.location.href = '/login';
+    }
+  };
   const navItems = isAdmin
     ? [{ href: '/admin', label: 'Admin' }]
     : [
@@ -95,7 +106,7 @@ export default function Navbar() {
                 </div>
               )}
               <button
-                onClick={logout}
+                onClick={handleLogout}
                 className="text-sm text-snow-dark hover:text-gold transition-colors"
               >
                 Logout
