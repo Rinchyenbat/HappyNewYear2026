@@ -78,6 +78,11 @@ export default function LoginPage() {
   const startFacebookLogin = async () => {
     setError('');
 
+    if (isSignedIn) {
+      setError('You are already signed in. If you are pending approval, please wait for admin approval.');
+      return;
+    }
+
     if (!isLoaded || !signIn) {
       setError('Authentication is still loading. Please try again.');
       return;
@@ -149,7 +154,7 @@ export default function LoginPage() {
 
             <button
               onClick={startFacebookLogin}
-              disabled={loading}
+              disabled={loading || isSignedIn}
               className="w-full py-4 rounded-lg bg-gradient-to-r from-winter-blue to-winter-purple text-white font-semibold hover:shadow-xl hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-3"
             >
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
