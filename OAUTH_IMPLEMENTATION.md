@@ -1,134 +1,41 @@
-# OAuth Implementation Summary (Outdated)
+# OAuth Implementation Summary (Archived)
 
-NOTE: This document is kept only for historical context.
-The project has migrated from Instagram OAuth -> Facebook OAuth -> Clerk (Facebook OAuth).
-The legacy `/auth/facebook` backend routes have been removed in favor of `POST /auth/clerk/exchange`.
+This document is kept only for historical context.
 
-## What Changed
+The project has migrated from legacy Instagram/Facebook OAuth implementations to **Clerk (Facebook OAuth)**.
+All legacy `/auth/instagram` and `/auth/facebook` backend routes are removed; the current login flow uses:
 
-The frontend has been completely refactored to use **proper Instagram OAuth** instead of manual Instagram ID input.
+- `POST /auth/clerk/exchange`
 
-## Key Changes
+## Important: Old env vars are no longer used
 
-### 1. Login Page (`app/login/page.tsx`)
-**Before:**
-- Text input for Instagram ID
-- Manual form submission
-- Direct API call with `instagram_id` parameter
+You can safely remove these from your backend deployment settings:
 
-**After:**
-- "Login with Instagram" button with Instagram gradient
-- OAuth flow redirect
-- No manual input required
-- Handles OAuth callback with token/username in URL params
+- `DEV_AUTH_BYPASS`
+- `INSTAGRAM_CLIENT_ID`, `INSTAGRAM_CLIENT_SECRET`, `INSTAGRAM_REDIRECT_URI`
+- `FACEBOOK_CLIENT_ID`, `FACEBOOK_CLIENT_SECRET`, `FACEBOOK_REDIRECT_URI`
 
-### 2. Auth Library (`app/lib/auth.ts`)
-**Before:**
-```typescript
-export const login = async (instagramId: string) => {
-  const response = await api.get('/auth/instagram/callback', {
-    params: { instagram_id: instagramId },
-  });
-  return response.data;
-};
-```
+## Current production env vars
 
-**After:**
-```typescript
-// Removed login function - OAuth handled via redirect
-// Only token management functions remain:
-// - setAuthToken()
-// - logout()
-// - getAuthToken()
-// - getUsername()
-// - isAuthenticated()
-```
+Backend (required):
 
-### 3. Backend Auth Controller (`backend/src/controllers/auth.controller.js`)
-**Added:**
-- `instagramOAuthInitiate()` - New endpoint to initiate OAuth flow
-- Redirect to frontend with token instead of JSON response
-- `FRONTEND_URL` environment variable support
+- `MONGODB_URI`
+- `JWT_SECRET`
+- `CORS_ORIGIN` (your Vercel domain(s), comma-separated)
+- `CLERK_JWKS_URL`
+- `CLERK_ISSUER`
 
-**Updated:**
-- `instagramOAuthLogin()` now redirects to frontend with `?token=...&username=...`
-- Error handling redirects to frontend with `?error=...`
+Backend (optional):
 
-### 4. Backend Auth Routes (`backend/src/routes/auth.routes.js`)
-**Added:**
-- `GET /auth/instagram` - Initiates Instagram OAuth flow
-- Redirects to Instagram's authorization URL
+- `CLERK_SECRET_KEY`
+- `ADMIN_FACEBOOK_ID`
+- `ADMIN_USERNAME`
+- `FRONTEND_URL` (fallback for CORS)
 
-**Existing:**
-- `GET /auth/instagram/callback` - Handles OAuth callback
-- Now redirects to frontend instead of returning JSON
+Frontend (Vercel):
 
-## Authentication Flow
-
-### Development Mode (DEV_AUTH_BYPASS=true)
-```
-User clicks button
-    ↓
-Frontend redirects to: /auth/instagram/callback?instagram_id=rinchyen_b
-    ↓
-Backend validates against whitelist
-    ↓
-Backend creates/finds user with assigned username
-    ↓
-Backend issues JWT
-    ↓
-Backend redirects to: /login?token=XXX&username=rinchyen
-    ↓
-Frontend stores token + username in localStorage
-    ↓
-Frontend redirects to /inbox
-```
-
-### Production Mode (DEV_AUTH_BYPASS=false)
-```
-User clicks button
-    ↓
-Frontend redirects to: /auth/instagram
-    ↓
-Backend redirects to: https://api.instagram.com/oauth/authorize?client_id=...
-    ↓
-User authorizes on Instagram
-    ↓
-Instagram redirects to: /auth/instagram/callback?code=XXX
-    ↓
-Backend exchanges code for access token
-    ↓
-Backend fetches Instagram profile
-    ↓
-Backend validates against whitelist
-    ↓
-Backend creates/finds user with assigned username
-    ↓
-Backend issues JWT
-    ↓
-Backend redirects to: /login?token=XXX&username=assigned_name
-    ↓
-Frontend stores token + username in localStorage
-    ↓
-Frontend redirects to /inbox
-```
-
-## Environment Variables
-
-### Backend (.env)
-```env
-FRONTEND_URL=http://localhost:3000
-DEV_AUTH_BYPASS=true
-INSTAGRAM_CLIENT_ID=your_app_id
-INSTAGRAM_CLIENT_SECRET=your_app_secret
-INSTAGRAM_REDIRECT_URI=http://localhost:4000/auth/instagram/callback
-```
-
-### Frontend (.env.local)
-```env
-NEXT_PUBLIC_API_URL=http://localhost:4000
-NEXT_PUBLIC_INSTAGRAM_APP_ID=  # Optional: Leave empty for dev mode
-```
+- `NEXT_PUBLIC_API_URL` (backend public URL)
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` (use production key in production)
 
 ## User Experience
 

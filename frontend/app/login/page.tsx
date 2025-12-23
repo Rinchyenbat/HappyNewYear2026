@@ -8,7 +8,9 @@ import axios from 'axios';
 import { setAuthToken } from '../lib/auth';
 import SnowEffect from '../components/SnowEffect';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ??
+  (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:4000');
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -22,6 +24,11 @@ export default function LoginPage() {
 
     async function exchange() {
       if (!isSignedIn) return;
+
+      if (process.env.NODE_ENV === 'production' && !API_URL) {
+        setError('Missing API configuration. Please contact the site owner.');
+        return;
+      }
 
       setError('');
       setLoading(true);

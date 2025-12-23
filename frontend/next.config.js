@@ -1,8 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000',
-  },
+  // NOTE: Do not hardcode NEXT_PUBLIC_* env vars here.
+  // Next.js will inline NEXT_PUBLIC_* from the build environment automatically.
 }
 
 module.exports = nextConfig

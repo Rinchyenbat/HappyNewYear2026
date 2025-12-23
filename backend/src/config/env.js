@@ -24,8 +24,18 @@ function requireMongoUri() {
   return normalized;
 }
 
+function requireEnvInProduction(name) {
+  const nodeEnv = process.env.NODE_ENV ?? 'development';
+  if (nodeEnv !== 'production') {
+    return (process.env[name] ?? '').trim();
+  }
+  return requireEnv(name);
+}
+
 export const env = Object.freeze({
   NODE_ENV: process.env.NODE_ENV ?? 'development',
+  // Used by some deployment guides; can be used as a CORS allowlist fallback.
+  FRONTEND_URL: process.env.FRONTEND_URL ?? '',
   PORT: (() => {
     const raw = process.env.PORT;
     if (raw == null || String(raw).trim() === '') {
@@ -50,10 +60,10 @@ export const env = Object.freeze({
 
   // Clerk JWT verification (for /auth/clerk/exchange).
   // Example JWKS URL: https://<your-clerk-domain>/.well-known/jwks.json
-  CLERK_JWKS_URL: process.env.CLERK_JWKS_URL ?? '',
+  CLERK_JWKS_URL: requireEnvInProduction('CLERK_JWKS_URL'),
   // Optional: enforce issuer match (recommended).
   // Example issuer: https://<your-clerk-domain>
-  CLERK_ISSUER: process.env.CLERK_ISSUER ?? '',
+  CLERK_ISSUER: requireEnvInProduction('CLERK_ISSUER'),
   // Optional: used to fetch user details (e.g., Facebook provider user id) from Clerk API.
   CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY ?? '',
 

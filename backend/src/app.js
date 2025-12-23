@@ -33,6 +33,10 @@ const allowedOrigins = env.CORS_ORIGIN
       .filter(Boolean)
   : [];
 
+if (allowedOrigins.length === 0 && env.FRONTEND_URL) {
+  allowedOrigins.push(env.FRONTEND_URL.trim());
+}
+
 app.use(
   cors({
     origin: allowedOrigins.length > 0 ? allowedOrigins : env.NODE_ENV === 'production' ? false : true,

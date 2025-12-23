@@ -1,6 +1,15 @@
 import axios, { AxiosError } from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ??
+  (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:4000');
+
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production' && !API_URL) {
+  // eslint-disable-next-line no-console
+  console.error(
+    'Missing NEXT_PUBLIC_API_URL. Set it on your hosting provider (e.g., Vercel) to your backend public URL.'
+  );
+}
 
 const api = axios.create({
   baseURL: API_URL,
