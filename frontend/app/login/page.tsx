@@ -89,8 +89,17 @@ export default function LoginPage() {
         redirectUrl: '/sso-callback',
         redirectUrlComplete: '/login'
       });
-    } catch {
-      setError('Could not start Facebook login. Please try again.');
+    } catch (err: any) {
+      // Clerk can throw a structured error with `errors: [{ message }]`.
+      const clerkMessage =
+        err?.errors?.[0]?.message ||
+        err?.response?.data?.errors?.[0]?.message ||
+        err?.message ||
+        'Could not start Facebook login. Please try again.';
+
+      // eslint-disable-next-line no-console
+      console.error('Facebook login failed:', err);
+      setError(String(clerkMessage));
     }
   };
 
