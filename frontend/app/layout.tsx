@@ -12,10 +12,13 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const clerkPublishableKey =
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || process.env.CLERK_PUBLISHABLE_KEY;
+
   return (
     <html lang="en">
       <body className="min-h-screen bg-gradient-to-br from-midnight via-midnight-light to-midnight-dark text-snow">
-        <ClerkProvider>{children}</ClerkProvider>
+        <ClerkProvider publishableKey={clerkPublishableKey}>{children}</ClerkProvider>
       </body>
     </html>
   );
